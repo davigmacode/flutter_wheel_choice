@@ -3,10 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:wheel_choice/wheel_choice.dart';
 
-Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: Center(child: child)));
+Widget _wrap(Widget child) => MaterialApp(
+  home: Scaffold(body: Center(child: child)),
+);
 
 void main() {
-  testWidgets('WheelChoice builds and shows header and overlay', (tester) async {
+  testWidgets('WheelChoice builds and shows header and overlay', (
+    tester,
+  ) async {
     final controller = FixedExtentScrollController(initialItem: 0);
     await tester.pumpWidget(
       _wrap(
@@ -24,7 +28,9 @@ void main() {
     expect(find.byKey(const Key('overlay')), findsOneWidget);
   });
 
-  testWidgets('WheelChoice onChanged fires when selecting enabled item', (tester) async {
+  testWidgets('WheelChoice onChanged fires when selecting enabled item', (
+    tester,
+  ) async {
     String? changed;
     final controller = FixedExtentScrollController(initialItem: 0);
     await tester.pumpWidget(
@@ -46,7 +52,9 @@ void main() {
     expect(controller.selectedItem % 3, 1);
   });
 
-  testWidgets('WheelChoice skips disabled item after scroll end (finite)', (tester) async {
+  testWidgets('WheelChoice skips disabled item after scroll end (finite)', (
+    tester,
+  ) async {
     final controller = FixedExtentScrollController(initialItem: 0);
     final calls = <String>[];
     await tester.pumpWidget(
@@ -71,8 +79,12 @@ void main() {
     expect(controller.selectedItem, 2);
   });
 
-  testWidgets('WheelChoice loop mode: disabled snaps to nearest enabled', (tester) async {
-    final controller = FixedExtentScrollController(initialItem: 1); // Start at 'B'
+  testWidgets('WheelChoice loop mode: disabled snaps to nearest enabled', (
+    tester,
+  ) async {
+    final controller = FixedExtentScrollController(
+      initialItem: 1,
+    ); // Start at 'B'
     final calls = <String>[];
     await tester.pumpWidget(
       _wrap(
@@ -98,7 +110,9 @@ void main() {
     expect(controller.selectedItem % 3, isNot(0));
   });
 
-  testWidgets('WheelEffect props are applied to ListWheelScrollView', (tester) async {
+  testWidgets('WheelEffect props are applied to ListWheelScrollView', (
+    tester,
+  ) async {
     const effect = WheelEffect(
       useMagnifier: true,
       magnification: 1.2,
@@ -119,7 +133,9 @@ void main() {
       ),
     );
 
-    final wheel = tester.widget<ListWheelScrollView>(find.byType(ListWheelScrollView));
+    final wheel = tester.widget<ListWheelScrollView>(
+      find.byType(ListWheelScrollView),
+    );
     expect(wheel.useMagnifier, isTrue);
     expect(wheel.magnification, equals(1.2));
     expect(wheel.diameterRatio, equals(2.5));

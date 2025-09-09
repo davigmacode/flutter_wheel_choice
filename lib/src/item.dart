@@ -107,7 +107,7 @@ typedef WheelItemLabel<T> = String Function(T value);
 /// A function signature used to determine whether an item should be disabled.
 typedef WheelItemDisable<T> = bool Function(T value);
 
-  /// A builder function for rendering each item in the [WheelChoice].
+/// A builder function for rendering each item in the [WheelChoice].
 ///
 /// Usage:
 /// ```dart

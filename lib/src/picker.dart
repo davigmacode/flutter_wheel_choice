@@ -113,6 +113,7 @@ class WheelChoice<T> extends StatefulWidget {
 /// State and behavior for [WheelChoice].
 class _WheelChoiceState<T> extends State<WheelChoice<T>> {
   late FixedExtentScrollController _internalController;
+
   /// Resolved scroll controller (external or internal fallback).
   FixedExtentScrollController get _controller =>
       widget.controller ?? _internalController;

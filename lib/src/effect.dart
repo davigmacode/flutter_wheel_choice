@@ -159,14 +159,14 @@ class WheelEffect implements Comparable<WheelEffect> {
   @override
   /// Hash code combining all configurable fields.
   int get hashCode => Object.hash(
-        useMagnifier,
-        magnification,
-        diameterRatio,
-        perspective,
-        offAxisFraction,
-        overAndUnderCenterOpacity,
-        squeeze,
-      );
+    useMagnifier,
+    magnification,
+    diameterRatio,
+    perspective,
+    offAxisFraction,
+    overAndUnderCenterOpacity,
+    squeeze,
+  );
 
   @override
   /// Provides a stable, deterministic ordering based on [toString].
