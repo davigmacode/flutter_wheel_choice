@@ -1,7 +1,10 @@
+## 1.0.1
+- Fix: formatting to satisfy `dart format`/lints.
+
 ## 1.0.0
 - Initial stable release.
 - Core widgets and APIs:
-- `WheelChoice`: customizable wheel/slot-style picker.
+  - `WheelChoice`: customizable wheel/slot-style picker.
   - `WheelHeader`: optional header row with styling.
   - `WheelItem.delegate`: default item renderer utilities.
   - `WheelOverlay`: outlined and filled selection overlays.
