@@ -1,3 +1,13 @@
 {
-    "dart.flutterSdkPath": "D:\\packages\\flutter\\flutter_wheel_choice\\.fvm\\versions\\3.35.3"
+  "dart.flutterSdkPath": ".fvm\\versions\\3.35.3",
+  "search.exclude": {
+    "**/.fvm": true
+  },
+  "files.watcherExclude": {
+    "**/.fvm": true
+  },
+  "[dart]": {
+    "editor.defaultFormatter": "Dart-Code.dart-code",
+    "editor.formatOnSave": true
+  },
 }
