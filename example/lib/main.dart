@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:wheel_choice/wheel_choice.dart';
 
 void main() => runApp(const WheelChoiceExampleApp());
@@ -12,6 +13,14 @@ class WheelChoiceExampleApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'wheel_choice example',
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.indigo),
+      scrollBehavior: const MaterialScrollBehavior().copyWith(
+        dragDevices: {
+          PointerDeviceKind.touch,
+          PointerDeviceKind.mouse,
+          PointerDeviceKind.stylus,
+          PointerDeviceKind.trackpad,
+        },
+      ),
       home: const ExampleHomePage(),
     );
   }
