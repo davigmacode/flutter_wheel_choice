@@ -7,6 +7,7 @@
     "**.gitignore",
     "**.g.dart",
     "**.yaml",
+    "**.yml",
     "**.http",
     "**.rest",
     "LICENSE"
