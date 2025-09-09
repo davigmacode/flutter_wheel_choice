@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// A class that represents a selectable and optionally disabled item
-/// in a [WheelPicker].
+/// in a [WheelChoice].
 ///
 /// Typically, you don't construct [WheelItem] directly; it's created internally
 /// when building the list. Use [WheelItem.delegate] to provide a custom builder
@@ -107,7 +107,7 @@ typedef WheelItemLabel<T> = String Function(T value);
 /// A function signature used to determine whether an item should be disabled.
 typedef WheelItemDisable<T> = bool Function(T value);
 
-/// A builder function for rendering each item in the [WheelPicker].
+  /// A builder function for rendering each item in the [WheelChoice].
 ///
 /// Usage:
 /// ```dart

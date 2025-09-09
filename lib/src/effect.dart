@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-/// A configuration class that defines the visual effects for [WheelPicker].
+/// A configuration class that defines the visual effects for [WheelChoice].
 ///
 /// Controls 3D look-and-feel such as perspective, magnifier, and wheel shape.
 ///

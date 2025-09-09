@@ -56,7 +56,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
               children: [
                 const Text('Pick a day'),
                 const SizedBox(height: 8),
-                WheelPicker<String>(
+                WheelChoice<String>(
                   options: _days,
                   value: _day,
                   onChanged: (v) => setState(() => _day = v),
@@ -85,7 +85,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
               children: [
                 const Text('Pick minutes'),
                 const SizedBox(height: 8),
-                WheelPicker<int>(
+                WheelChoice<int>(
                   options: _minutes,
                   value: _minute,
                   onChanged: (v) => setState(() => _minute = v),
@@ -120,7 +120,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
                 const SizedBox(height: 8),
                 SizedBox(
                   height: 180,
-                  child: WheelPicker<String>(
+                  child: WheelChoice<String>(
                     options: _fruits,
                     value: _fruit,
                     onChanged: (v) => setState(() => _fruit = v),

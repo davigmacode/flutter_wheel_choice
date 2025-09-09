@@ -6,11 +6,11 @@ import 'package:wheel_choice/wheel_choice.dart';
 Widget _wrap(Widget child) => MaterialApp(home: Scaffold(body: Center(child: child)));
 
 void main() {
-  testWidgets('WheelPicker builds and shows header and overlay', (tester) async {
+  testWidgets('WheelChoice builds and shows header and overlay', (tester) async {
     final controller = FixedExtentScrollController(initialItem: 0);
     await tester.pumpWidget(
       _wrap(
-        WheelPicker<String>(
+        WheelChoice<String>(
           controller: controller,
           options: const ['A', 'B', 'C'],
           value: 'A',
@@ -24,12 +24,12 @@ void main() {
     expect(find.byKey(const Key('overlay')), findsOneWidget);
   });
 
-  testWidgets('WheelPicker onChanged fires when selecting enabled item', (tester) async {
+  testWidgets('WheelChoice onChanged fires when selecting enabled item', (tester) async {
     String? changed;
     final controller = FixedExtentScrollController(initialItem: 0);
     await tester.pumpWidget(
       _wrap(
-        WheelPicker<String>(
+        WheelChoice<String>(
           controller: controller,
           options: const ['One', 'Two', 'Three'],
           value: 'One',
@@ -46,12 +46,12 @@ void main() {
     expect(controller.selectedItem % 3, 1);
   });
 
-  testWidgets('WheelPicker skips disabled item after scroll end (finite)', (tester) async {
+  testWidgets('WheelChoice skips disabled item after scroll end (finite)', (tester) async {
     final controller = FixedExtentScrollController(initialItem: 0);
     final calls = <String>[];
     await tester.pumpWidget(
       _wrap(
-        WheelPicker<String>(
+        WheelChoice<String>(
           controller: controller,
           options: const ['A', 'B', 'C'],
           value: 'A',
@@ -71,12 +71,12 @@ void main() {
     expect(controller.selectedItem, 2);
   });
 
-  testWidgets('WheelPicker loop mode: disabled snaps to nearest enabled', (tester) async {
+  testWidgets('WheelChoice loop mode: disabled snaps to nearest enabled', (tester) async {
     final controller = FixedExtentScrollController(initialItem: 1); // Start at 'B'
     final calls = <String>[];
     await tester.pumpWidget(
       _wrap(
-        WheelPicker<String>(
+        WheelChoice<String>(
           controller: controller,
           options: const ['A', 'B', 'C'],
           value: 'B',
@@ -111,7 +111,7 @@ void main() {
 
     await tester.pumpWidget(
       _wrap(
-        const WheelPicker<String>(
+        const WheelChoice<String>(
           options: ['X', 'Y', 'Z'],
           value: 'X',
           effect: effect,

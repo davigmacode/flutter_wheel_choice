@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'item.dart';
 
-/// A header widget shown above the [WheelPicker] viewport.
+/// A header widget shown above the [WheelChoice] viewport.
 ///
 /// Useful for titles, units, or any leading widget aligned with
 /// the wheel rows.

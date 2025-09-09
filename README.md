@@ -6,7 +6,7 @@ Demo: https://davigmacode.github.io/flutter_wheel_choice
 
 ## Features
 
-- Customizable wheel/slot-style picker (`WheelPicker<T>`)
+- Customizable wheel/slot-style picker (`WheelChoice<T>`)
 - Optional header (`WheelHeader`) aligned with the wheel viewport
 - Overlays to highlight selection (outlined or filled via `WheelOverlay`)
 - 3D look and magnifier (`WheelEffect`) with tunable perspective and diameter
@@ -30,7 +30,7 @@ import 'package:wheel_choice/wheel_choice.dart';
 ## Quick start
 
 ```dart
-final picker = WheelPicker<String>(
+final picker = WheelChoice<String>(
   options: const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
   value: 'Wed',
   onChanged: (v) => debugPrint('Selected: $v'),
@@ -78,7 +78,7 @@ See full docs on pub.dev: https://pub.dev/documentation/wheel_choice/latest/
 
 Key exports:
 
-- `WheelPicker<T>` — the main widget
+- `WheelChoice<T>` — the main widget
 - `WheelHeader` — header above the viewport
 - `WheelOverlay` — selection overlays (outlined/filled)
 - `WheelEffect` — magnifier, perspective, diameter, opacity, squeeze

@@ -11,7 +11,7 @@ import 'overlay.dart';
 ///
 /// Usage:
 /// ```dart
-/// final picker = WheelPicker<String>(
+/// final picker = WheelChoice<String>(
 ///   options: const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
 ///   value: 'Wed',
 ///   onChanged: (v) => debugPrint('Selected: $v'),
@@ -39,9 +39,9 @@ import 'overlay.dart';
 ///   to fit the available height.
 /// - If `value` is not in `options`, selection defaults to the first item.
 /// - In `loop` mode, the picker wraps around; disabled items are skipped after scroll end.
-class WheelPicker<T> extends StatefulWidget {
-  /// Creates a [WheelPicker] with various customization options.
-  const WheelPicker({
+class WheelChoice<T> extends StatefulWidget {
+  /// Creates a [WheelChoice] with various customization options.
+  const WheelChoice({
     super.key,
     required this.options,
     this.value,
@@ -107,11 +107,11 @@ class WheelPicker<T> extends StatefulWidget {
   final FixedExtentScrollController? controller;
 
   @override
-  State<WheelPicker<T>> createState() => _WheelPickerState<T>();
+  State<WheelChoice<T>> createState() => _WheelChoiceState<T>();
 }
 
-/// State and behavior for [WheelPicker].
-class _WheelPickerState<T> extends State<WheelPicker<T>> {
+/// State and behavior for [WheelChoice].
+class _WheelChoiceState<T> extends State<WheelChoice<T>> {
   late FixedExtentScrollController _internalController;
   /// Resolved scroll controller (external or internal fallback).
   FixedExtentScrollController get _controller =>
@@ -363,7 +363,7 @@ class _WheelPickerState<T> extends State<WheelPicker<T>> {
 
   @override
   /// Keeps the controller position and effects in sync with widget updates.
-  void didUpdateWidget(covariant WheelPicker<T> oldWidget) {
+  void didUpdateWidget(covariant WheelChoice<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.value != _currentValue) {
       _currentValue = widget.value;
