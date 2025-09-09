@@ -10,6 +10,7 @@
     "**.yml",
     "**.http",
     "**.rest",
+    "**.md",
     "LICENSE"
   ],
   "words": [

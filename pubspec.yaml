@@ -1,7 +1,18 @@
 name: wheel_choice
-description: "A new Flutter package project."
-version: 0.0.1
-homepage:
+description: "Wheel-shaped picker widget for Flutter. Scroll and select items with customizable header, overlays, magnifier and 3D effects, disabled items, looping, and custom item builders."
+version: 1.0.0
+homepage: https://davigmacode.github.io/flutter_wheel_choice
+repository: https://github.com/davigmacode/flutter_wheel_choice
+
+topics:
+  - wheel
+  - scroll
+  - choice
+  - picker
+
+funding:
+ - https://buymeacoffee.com/davigmacode
+ - https://ko-fi.com/davigmacode
 
 environment:
   sdk: ^3.9.2
