@@ -50,14 +50,16 @@ class WheelItem<T> implements Comparable<WheelItem<T>> {
   /// The value associated with this item.
   final T data;
 
+  /// The human-readable label shown for this item.
   final String label;
 
   /// Whether the item is currently selected.
   final bool selected;
 
-  /// Whether the item is disabled and un selectable.
+  /// Whether the item is disabled and unselectable.
   final bool disabled;
 
+  /// Default row height for items in the wheel.
   static const defaultExtent = 40.0;
 
   @override

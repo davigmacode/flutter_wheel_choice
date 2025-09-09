@@ -13,6 +13,8 @@ class WheelEffect implements Comparable<WheelEffect> {
     this.squeeze,
   });
 
+  /// A convenience constructor that produces a near-flat wheel by
+  /// using a very large [diameterRatio].
   const WheelEffect.flat({
     this.useMagnifier,
     this.magnification,
@@ -44,18 +46,25 @@ class WheelEffect implements Comparable<WheelEffect> {
   /// The vertical compression factor.
   final double? squeeze;
 
+  /// Resolved value for [useMagnifier] (defaults to `false`).
   bool get useMagnifierX => useMagnifier ?? false;
 
+  /// Resolved value for [magnification] (defaults to `1.0`).
   double get magnificationX => magnification ?? 1.0;
 
+  /// Resolved value for [diameterRatio] (defaults to `2.0`).
   double get diameterRatioX => diameterRatio ?? 2.0;
 
+  /// Resolved value for [perspective] (defaults to `0.003`).
   double get perspectiveX => perspective ?? 0.003;
 
+  /// Resolved value for [offAxisFraction] (defaults to `0.0`).
   double get offAxisFractionX => offAxisFraction ?? 0.0;
 
+  /// Resolved value for [overAndUnderCenterOpacity] (defaults to `1.0`).
   double get overAndUnderCenterOpacityX => overAndUnderCenterOpacity ?? 1.0;
 
+  /// Resolved value for [squeeze] (defaults to `1.0`).
   double get squeezeX => squeeze ?? 1.0;
 
   /// Creates a new [WheelEffect] with some properties replaced.
@@ -108,6 +117,7 @@ class WheelEffect implements Comparable<WheelEffect> {
   }
 
   @override
+  /// Equality operator comparing all effect properties.
   bool operator ==(Object other) {
     return identical(this, other) ||
         other is WheelEffect &&
@@ -122,6 +132,7 @@ class WheelEffect implements Comparable<WheelEffect> {
   }
 
   @override
+  /// Hash code combining all configurable fields.
   int get hashCode => Object.hash(
         useMagnifier,
         magnification,
@@ -133,8 +144,6 @@ class WheelEffect implements Comparable<WheelEffect> {
       );
 
   @override
-  int compareTo(WheelEffect other) {
-    // You can customize how these should be ranked if needed.
-    return toString().compareTo(other.toString());
-  }
+  /// Provides a stable, deterministic ordering based on [toString].
+  int compareTo(WheelEffect other) => toString().compareTo(other.toString());
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+/// An overlay shown on top of the wheel viewport, typically to
+/// highlight the currently selected row.
 class WheelOverlay extends StatelessWidget {
   const WheelOverlay({
     super.key,
@@ -9,9 +11,17 @@ class WheelOverlay extends StatelessWidget {
     required this.child,
   });
 
+  /// Optional builder that paints the overlay content.
+  /// If `null`, only [child] is displayed.
   final WidgetBuilder? builder;
+
+  /// Height of the overlay box. Usually matches the item extent.
   final double? extent;
+
+  /// Vertical offset applied to the overlay (e.g. to account for headers).
   final double? offset;
+
+  /// The underlying wheel view.
   final Widget child;
 
   /// Creates a default overlay box with optional border and background color.
@@ -65,6 +75,7 @@ class WheelOverlay extends StatelessWidget {
   }
 
   @override
+  /// Builds the wheel with the overlay stacked on top when [builder] is set.
   Widget build(BuildContext context) {
     if (builder != null) {
       Widget overlay = IgnorePointer(

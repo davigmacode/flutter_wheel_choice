@@ -37,6 +37,8 @@ class WheelPicker<T> extends StatefulWidget {
   /// Called when a different item is selected.
   final ValueChanged<T>? onChanged;
 
+  /// Resolves a string label from a value for default item rendering.
+  /// If not provided, `value.toString()` is used.
   final WheelItemLabel<T>? itemLabel;
 
   /// A function used to mark specific items as disabled.
@@ -51,11 +53,13 @@ class WheelPicker<T> extends StatefulWidget {
   /// The height of each item in the picker.
   final double? itemExtent;
 
+  /// Optional header displayed above the wheel.
   final WheelHeader? header;
 
   /// An optional overlay builder displayed on top of the picker.
   final WidgetBuilder? overlay;
 
+  /// Visual effects configuration for the wheel's 3D appearance.
   final WheelEffect? effect;
 
   /// Whether the picker should loop infinitely.
@@ -71,8 +75,10 @@ class WheelPicker<T> extends StatefulWidget {
   State<WheelPicker<T>> createState() => _WheelPickerState<T>();
 }
 
+/// State and behavior for [WheelPicker].
 class _WheelPickerState<T> extends State<WheelPicker<T>> {
   late FixedExtentScrollController _internalController;
+  /// Resolved scroll controller (external or internal fallback).
   FixedExtentScrollController get _controller =>
       widget.controller ?? _internalController;
 
@@ -91,6 +97,7 @@ class _WheelPickerState<T> extends State<WheelPicker<T>> {
   double get _itemExtent => widget.itemExtent ?? WheelItem.defaultExtent;
   int get _itemVisible => widget.itemVisible ?? 5;
 
+  /// Index of the current value within [_options].
   int get _selectedIndex {
     final value = _currentValue;
     if (value == null || !_options.contains(value)) return 0;
@@ -99,6 +106,7 @@ class _WheelPickerState<T> extends State<WheelPicker<T>> {
 
   double get _fixedHeight => _itemExtent * _itemVisible;
 
+  /// Resolved squeeze value accounting for expanded layout.
   double get _squeeze {
     if (_expanded && widget.itemVisible != null && _viewportHeight > 0) {
       return (widget.itemVisible! * _itemExtent) / _viewportHeight;
@@ -106,8 +114,10 @@ class _WheelPickerState<T> extends State<WheelPicker<T>> {
     return _effect.squeezeX;
   }
 
+  /// Whether the given [item] is disabled.
   bool _isDisabled(T item) => widget.itemDisabled?.call(item) ?? false;
 
+  /// Wraps an item with semantics and tap-to-select behavior.
   Widget _wrapWithSemanticsAndTap({
     required T item,
     required Widget child,
@@ -134,10 +144,12 @@ class _WheelPickerState<T> extends State<WheelPicker<T>> {
     );
   }
 
+  /// Resolves the string label for an [item].
   String _resolveLabel(T item) {
     return widget.itemLabel?.call(item) ?? item.toString();
   }
 
+  /// Builds the list wheel child delegate (looping or finite).
   ListWheelChildDelegate get _childDelegate {
     if (_loop) {
       return ListWheelChildLoopingListDelegate(
@@ -199,6 +211,7 @@ class _WheelPickerState<T> extends State<WheelPicker<T>> {
     );
   }
 
+  /// The configured wheel view with selection/disable handling.
   Widget get _wheelView {
     return NotificationListener<ScrollEndNotification>(
       onNotification: (_) {
@@ -239,6 +252,7 @@ class _WheelPickerState<T> extends State<WheelPicker<T>> {
     );
   }
 
+  /// Finds the nearest enabled index around [fromIndex] in loop mode.
   int _findNearestEnabledIndexLoop(int fromIndex) {
     final len = _options.length;
     int? bestIndex;
@@ -272,6 +286,7 @@ class _WheelPickerState<T> extends State<WheelPicker<T>> {
     return bestIndex ?? fromIndex;
   }
 
+  /// Finds the nearest enabled index around [fromIndex] in finite mode.
   int _findNearestEnabledIndex(int fromIndex) {
     int distance = 1;
     while (fromIndex - distance >= 0 ||
@@ -289,6 +304,7 @@ class _WheelPickerState<T> extends State<WheelPicker<T>> {
     return fromIndex;
   }
 
+  /// Handles selection changes from the wheel.
   void _onChanged(int index) {
     final actualIndex = _loop ? index % _options.length : index;
     final newValue = _options[actualIndex];
@@ -300,6 +316,7 @@ class _WheelPickerState<T> extends State<WheelPicker<T>> {
   }
 
   @override
+  /// Initializes the internal state and controller.
   void initState() {
     super.initState();
     _currentValue = widget.value;
@@ -310,6 +327,7 @@ class _WheelPickerState<T> extends State<WheelPicker<T>> {
   }
 
   @override
+  /// Keeps the controller position and effects in sync with widget updates.
   void didUpdateWidget(covariant WheelPicker<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.value != _currentValue) {
@@ -327,6 +345,7 @@ class _WheelPickerState<T> extends State<WheelPicker<T>> {
   }
 
   @override
+  /// Lays out the wheel (and header when provided) with an optional overlay.
   Widget build(BuildContext context) {
     final picker = LayoutBuilder(
       builder: (context, constraints) {
