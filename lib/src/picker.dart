@@ -8,6 +8,37 @@ import 'overlay.dart';
 ///
 /// Useful for building things like time selectors, value choosers, or
 /// any dropdown-like vertical list with better UX.
+///
+/// Usage:
+/// ```dart
+/// final picker = WheelPicker<String>(
+///   options: const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+///   value: 'Wed',
+///   onChanged: (v) => debugPrint('Selected: $v'),
+///   itemLabel: (v) => 'Day: $v', // custom label resolver
+///   itemDisabled: (v) => v == 'Thu', // disable certain items
+///   itemBuilder: WheelItem.delegate(
+///     selectedStyle: const TextStyle(fontSize: 18),
+///   ),
+///   itemVisible: 5, // should be odd
+///   itemExtent: WheelItem.defaultExtent,
+///   header: const WheelHeader(
+///     child: Text('Pick a day'),
+///   ),
+///   overlay: WheelOverlay.outlined(inset: 12),
+///   effect: const WheelEffect(
+///     useMagnifier: true,
+///     magnification: 1.1,
+///   ),
+///   loop: true,
+/// );
+/// ```
+///
+/// Notes:
+/// - When `expanded` is true and `itemVisible` is set, the wheel adjusts `squeeze`
+///   to fit the available height.
+/// - If `value` is not in `options`, selection defaults to the first item.
+/// - In `loop` mode, the picker wraps around; disabled items are skipped after scroll end.
 class WheelPicker<T> extends StatefulWidget {
   /// Creates a [WheelPicker] with various customization options.
   const WheelPicker({
@@ -69,6 +100,10 @@ class WheelPicker<T> extends StatefulWidget {
   final bool? expanded;
 
   /// Scroll controller for programmatic control.
+  ///
+  /// If provided, its initial position takes precedence over `value` unless you
+  /// align them manually. Without a controller, an internal one is created and
+  /// initialized from `value`.
   final FixedExtentScrollController? controller;
 
   @override

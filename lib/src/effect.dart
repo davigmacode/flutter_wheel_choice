@@ -1,6 +1,23 @@
 import 'package:flutter/foundation.dart';
 
 /// A configuration class that defines the visual effects for [WheelPicker].
+///
+/// Controls 3D look-and-feel such as perspective, magnifier, and wheel shape.
+///
+/// Usage:
+/// ```dart
+/// final effect = const WheelEffect(
+///   useMagnifier: true,
+///   magnification: 1.15,
+///   diameterRatio: 2.0,
+///   perspective: 0.003,
+///   overAndUnderCenterOpacity: 0.6,
+/// );
+/// ```
+///
+/// Tips:
+/// - Use [WheelEffect.flat] for a near-flat list look (very large diameter).
+/// - Prefer [merge] to combine defaults with overrides; use [copyWith] for tweaks.
 @immutable
 class WheelEffect implements Comparable<WheelEffect> {
   const WheelEffect({
@@ -90,6 +107,14 @@ class WheelEffect implements Comparable<WheelEffect> {
   }
 
   /// Merges another [WheelEffect] into this one.
+  ///
+  /// Useful for layering a base effect with per-instance overrides.
+  /// When [other] is `null`, returns `this` unchanged.
+  ///
+  /// ```dart
+  /// final base = const WheelEffect(useMagnifier: true);
+  /// final merged = base.merge(const WheelEffect(magnification: 1.1));
+  /// ```
   WheelEffect merge(WheelEffect? other) {
     if (other == null) return this;
     return copyWith(

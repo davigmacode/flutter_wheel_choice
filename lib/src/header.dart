@@ -5,6 +5,16 @@ import 'item.dart';
 ///
 /// Useful for titles, units, or any leading widget aligned with
 /// the wheel rows.
+///
+/// Usage:
+/// ```dart
+/// WheelHeader(
+///   extent: 40,
+///   align: Alignment.center,
+///   decoration: const BoxDecoration(color: Colors.black12),
+///   child: const Text('Select value'),
+/// )
+/// ```
 class WheelHeader extends StatelessWidget {
   const WheelHeader({
     super.key,

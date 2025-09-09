@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 
 /// A class that represents a selectable and optionally disabled item
 /// in a [WheelPicker].
+///
+/// Typically, you don't construct [WheelItem] directly; it's created internally
+/// when building the list. Use [WheelItem.delegate] to provide a custom builder
+/// for how each row is rendered.
 class WheelItem<T> implements Comparable<WheelItem<T>> {
   /// Creates a wheel item with the given data and states.
   WheelItem({
@@ -12,6 +16,17 @@ class WheelItem<T> implements Comparable<WheelItem<T>> {
   });
 
   /// Creates a default item builder that renders the item text.
+  ///
+  /// Usage:
+  /// ```dart
+  /// itemBuilder: WheelItem.delegate(
+  ///   alignment: Alignment.centerLeft,
+  ///   padding: const EdgeInsets.symmetric(horizontal: 16),
+  ///   style: const TextStyle(fontSize: 14),
+  ///   selectedStyle: const TextStyle(fontWeight: FontWeight.bold),
+  ///   disabledStyle: const TextStyle(color: Colors.grey),
+  /// )
+  /// ```
   static WheelItemBuilder<T> delegate<T>({
     AlignmentGeometry? alignment,
     EdgeInsetsGeometry? padding,
@@ -93,5 +108,18 @@ typedef WheelItemLabel<T> = String Function(T value);
 typedef WheelItemDisable<T> = bool Function(T value);
 
 /// A builder function for rendering each item in the [WheelPicker].
+///
+/// Usage:
+/// ```dart
+/// Widget buildItem(BuildContext context, WheelItem<int> item) {
+///   return Row(
+///     mainAxisAlignment: MainAxisAlignment.center,
+///     children: [
+///       Text(item.label),
+///       if (item.selected) const Icon(Icons.check, size: 16),
+///     ],
+///   );
+/// }
+/// ```
 typedef WheelItemBuilder<T> =
     Widget Function(BuildContext context, WheelItem<T> item);
