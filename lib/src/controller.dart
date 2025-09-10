@@ -7,7 +7,6 @@ class WheelController<T> extends FixedExtentScrollController {
   WheelController({
     required List<T> options,
     T? value,
-    int? initialIndex,
     WheelItemDisable<T>? valueDisabled,
     ValueChanged<T>? onChanged,
     bool? loop,
@@ -21,9 +20,7 @@ class WheelController<T> extends FixedExtentScrollController {
        _animationDuration =
            animationDuration ?? const Duration(milliseconds: 250),
        _animationCurve = animationCurve ?? Curves.ease,
-       super(
-         initialItem: initialIndex ?? _initialIndex(options, value),
-       );
+       super(initialItem: _initialIndex(options, value));
 
   static int _initialIndex<T>(List<T> options, T? value) {
     if (value != null) {
