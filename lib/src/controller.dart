@@ -10,10 +10,12 @@ class WheelController<T> extends FixedExtentScrollController {
     int? initialIndex,
     WheelItemDisable<T>? valueDisabled,
     ValueChanged<T>? onChanged,
+    bool? loop,
   }) : _options = List<T>.from(options),
        _value = value,
        _valueDisabled = valueDisabled,
        _onChanged = onChanged,
+       _loop = loop ?? false,
        super(
          initialItem: initialIndex ?? _initialIndex(options, value),
        );
@@ -30,6 +32,7 @@ class WheelController<T> extends FixedExtentScrollController {
   T? _value;
   WheelItemDisable<T>? _valueDisabled;
   ValueChanged<T>? _onChanged;
+  bool _loop;
 
   /// Current options used to resolve indices.
   List<T> get options => List.unmodifiable(_options);
@@ -47,6 +50,10 @@ class WheelController<T> extends FixedExtentScrollController {
 
   /// Predicate to check whether an item is disabled.
   bool isDisabled(T item) => _valueDisabled?.call(item) ?? false;
+
+  /// Whether the wheel should wrap around when scrolling by index.
+  bool get loop => _loop;
+  void setLoop(bool? value) => _loop = value ?? false;
 
   /// Replaces the options list. When [alignToValue] is true and the
   /// current [value] exists in the new list, scrolls to its index.
@@ -107,9 +114,9 @@ class WheelController<T> extends FixedExtentScrollController {
   }
 
   /// Handles selection change from the wheel at [index].
-  void handleIndexChanged(int index, {required bool loop}) {
+  void handleIndexChanged(int index) {
     if (_options.isEmpty) return;
-    final actualIndex = loop ? index % _options.length : index;
+    final actualIndex = _loop ? index % _options.length : index;
     final newValue = _options[actualIndex];
     if (!isDisabled(newValue) && _value != newValue) {
       _value = newValue;
@@ -120,20 +127,19 @@ class WheelController<T> extends FixedExtentScrollController {
   /// Ensures that when landing on a disabled item, the wheel snaps to the
   /// nearest enabled item according to [loop] mode.
   void handleScrollEnd({
-    required bool loop,
     Duration duration = const Duration(milliseconds: 300),
     Curve curve = Curves.easeOut,
   }) {
     if (_options.isEmpty) return;
     final index = selectedItem;
-    final actualIndex = loop ? index % _options.length : index;
+    final actualIndex = _loop ? index % _options.length : index;
     final item = _options[actualIndex];
     if (isDisabled(item)) {
-      final nearestIndex = loop
+      final nearestIndex = _loop
           ? _findNearestEnabledIndexLoop(actualIndex)
           : _findNearestEnabledIndex(actualIndex);
       if (nearestIndex != actualIndex) {
-        final target = loop
+        final target = _loop
             ? index + (nearestIndex - actualIndex)
             : nearestIndex;
         Future.microtask(() {
