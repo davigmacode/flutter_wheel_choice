@@ -203,13 +203,35 @@ class WheelController<T> extends FixedExtentScrollController {
     return index;
   }
 
+  int _normalizeMod(int value, int mod) {
+    if (mod == 0) return 0;
+    final r = value % mod;
+    return r < 0 ? r + mod : r;
+  }
+
+  /// Computes the target absolute item index when looping is enabled,
+  /// choosing the shortest path from the current position to [baseIndex].
+  int _loopTargetForBaseIndex(int baseIndex) {
+    final len = _options.length;
+    if (len == 0) return 0;
+    final current = selectedItem;
+    final currentBase = _normalizeMod(current, len);
+    int delta = baseIndex - currentBase; // could be negative or positive
+    // Choose the minimal wrap distance
+    if (delta.abs() > len / 2) {
+      delta += (delta > 0) ? -len : len;
+    }
+    return current + delta;
+  }
+
   /// Jumps to an item by its index and updates [value].
   void jumpToIndex(int index, {bool notify = true}) {
     if (_options.isEmpty) return;
-    final i = _clampIndex(index);
-    _value = _options[i];
-    if (selectedItem != i) {
-      jumpToItem(i);
+    final baseIndex = _clampIndex(index);
+    final targetIndex = _loop ? _loopTargetForBaseIndex(baseIndex) : baseIndex;
+    _value = _options[baseIndex];
+    if (selectedItem != targetIndex) {
+      jumpToItem(targetIndex);
     }
     if (notify) _onChanged?.call(_value as T);
   }
@@ -222,21 +244,23 @@ class WheelController<T> extends FixedExtentScrollController {
     bool notify = true,
   }) async {
     if (_options.isEmpty) return;
-    final i = _clampIndex(index);
-    _value = _options[i];
-    if (selectedItem != i) {
-      await animateToItem(i, duration: duration, curve: curve);
+    final baseIndex = _clampIndex(index);
+    final targetIndex = _loop ? _loopTargetForBaseIndex(baseIndex) : baseIndex;
+    _value = _options[baseIndex];
+    if (selectedItem != targetIndex) {
+      await animateToItem(targetIndex, duration: duration, curve: curve);
     }
     if (notify) _onChanged?.call(_value as T);
   }
 
   /// Jumps to an item by its value. Returns `true` if found.
   bool jumpToValue(T value, {bool notify = true}) {
-    final idx = _options.indexOf(value);
-    if (idx < 0) return false;
+    final baseIndex = _options.indexOf(value);
+    if (baseIndex < 0) return false;
+    final targetIndex = _loop ? _loopTargetForBaseIndex(baseIndex) : baseIndex;
     _value = value;
-    if (selectedItem != idx) {
-      jumpToItem(idx);
+    if (selectedItem != targetIndex) {
+      jumpToItem(targetIndex);
     }
     if (notify) _onChanged?.call(value);
     return true;
@@ -249,11 +273,12 @@ class WheelController<T> extends FixedExtentScrollController {
     Curve curve = Curves.ease,
     bool notify = true,
   }) async {
-    final idx = _options.indexOf(value);
-    if (idx < 0) return false;
+    final baseIndex = _options.indexOf(value);
+    if (baseIndex < 0) return false;
+    final targetIndex = _loop ? _loopTargetForBaseIndex(baseIndex) : baseIndex;
     _value = value;
-    if (selectedItem != idx) {
-      await animateToItem(idx, duration: duration, curve: curve);
+    if (selectedItem != targetIndex) {
+      await animateToItem(targetIndex, duration: duration, curve: curve);
     }
     if (notify) _onChanged?.call(value);
     return true;

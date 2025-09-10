@@ -150,13 +150,7 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
     return GestureDetector(
       onTap: () {
         if (!disabled) {
-          _controller.animateToItem(
-            _controller.loop
-                ? _controller.selectedItem + (index - _controller.selectedIndex)
-                : index,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
+          _controller.animateToIndex(index);
         }
       },
       child: Semantics(
