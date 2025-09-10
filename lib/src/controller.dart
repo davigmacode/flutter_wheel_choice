@@ -107,7 +107,7 @@ class WheelController<T> extends FixedExtentScrollController {
   }
 
   /// Handles selection change from the wheel at [index].
-  void handleChanged(int index, {required bool loop}) {
+  void handleIndexChanged(int index, {required bool loop}) {
     if (_options.isEmpty) return;
     final actualIndex = loop ? index % _options.length : index;
     final newValue = _options[actualIndex];
@@ -186,5 +186,70 @@ class WheelController<T> extends FixedExtentScrollController {
       distance++;
     }
     return fromIndex;
+  }
+
+  // Programmatic navigation helpers
+
+  int _clampIndex(int index) {
+    if (_options.isEmpty) return 0;
+    if (index < 0) return 0;
+    if (index >= _options.length) return _options.length - 1;
+    return index;
+  }
+
+  /// Jumps to an item by its index and updates [value].
+  void jumpToIndex(int index, {bool notify = true}) {
+    if (_options.isEmpty) return;
+    final i = _clampIndex(index);
+    _value = _options[i];
+    if (selectedItem != i) {
+      jumpToItem(i);
+    }
+    if (notify) _onChanged?.call(_value as T);
+  }
+
+  /// Animates to an item by its index and updates [value].
+  Future<void> animateToIndex(
+    int index, {
+    Duration duration = const Duration(milliseconds: 250),
+    Curve curve = Curves.ease,
+    bool notify = true,
+  }) async {
+    if (_options.isEmpty) return;
+    final i = _clampIndex(index);
+    _value = _options[i];
+    if (selectedItem != i) {
+      await animateToItem(i, duration: duration, curve: curve);
+    }
+    if (notify) _onChanged?.call(_value as T);
+  }
+
+  /// Jumps to an item by its value. Returns `true` if found.
+  bool jumpToValue(T value, {bool notify = true}) {
+    final idx = _options.indexOf(value);
+    if (idx < 0) return false;
+    _value = value;
+    if (selectedItem != idx) {
+      jumpToItem(idx);
+    }
+    if (notify) _onChanged?.call(value);
+    return true;
+  }
+
+  /// Animates to an item by its value. Returns `true` if found.
+  Future<bool> animateToValue(
+    T value, {
+    Duration duration = const Duration(milliseconds: 250),
+    Curve curve = Curves.ease,
+    bool notify = true,
+  }) async {
+    final idx = _options.indexOf(value);
+    if (idx < 0) return false;
+    _value = value;
+    if (selectedItem != idx) {
+      await animateToItem(idx, duration: duration, curve: curve);
+    }
+    if (notify) _onChanged?.call(value);
+    return true;
   }
 }

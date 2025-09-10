@@ -256,7 +256,7 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
         squeeze: _squeeze,
         onSelectedItemChanged: (i) {
           setState(() {
-            _controller.handleChanged(i, loop: _loop);
+            _controller.handleIndexChanged(i, loop: _loop);
           });
         },
         childDelegate: _childDelegate,
