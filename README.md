@@ -12,7 +12,7 @@ Demo: https://davigmacode.github.io/flutter_wheel_choice
 - 3D look and magnifier (`WheelEffect`) with tunable perspective and diameter
 - Item builder and label resolver (`WheelItem.delegate`, `itemLabel`)
 - Disable items and optionally loop the list (`itemDisabled`, `loop`)
-- Programmatic control with `FixedExtentScrollController`
+- Programmatic control with `WheelController`
 - Adaptive height with `expanded` and `itemVisible`
 
 ## Installation
@@ -39,6 +39,31 @@ final picker = WheelChoice<String>(
   overlay: WheelOverlay.outlined(inset: 12),
   effect: const WheelEffect(useMagnifier: true, magnification: 1.1),
 );
+```
+
+### Programmatic control
+
+Use `WheelController` to change selection by value and keep options in sync.
+
+```dart
+final days = const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+final controller = WheelController<String>(
+  options: days,
+  value: 'Wed',
+);
+
+WheelChoice<String>(
+  controller: controller,
+  options: days,
+  value: 'Wed',
+  onChanged: (v) => debugPrint('Selected: $v'),
+);
+
+// Programmatically select a value later
+await controller.setValue('Fri', animate: true);
+
+// If your options list changes, update the controller too
+controller.setOptions(const ['Tue', 'Wed', 'Thu']);
 ```
 
 ## Examples

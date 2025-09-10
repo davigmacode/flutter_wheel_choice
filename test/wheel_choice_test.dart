@@ -11,7 +11,10 @@ void main() {
   testWidgets('WheelChoice builds and shows header and overlay', (
     tester,
   ) async {
-    final controller = FixedExtentScrollController(initialItem: 0);
+    final controller = WheelController<String>(
+      options: const ['A', 'B', 'C'],
+      value: 'A',
+    );
     await tester.pumpWidget(
       _wrap(
         WheelChoice<String>(
@@ -32,7 +35,10 @@ void main() {
     tester,
   ) async {
     String? changed;
-    final controller = FixedExtentScrollController(initialItem: 0);
+    final controller = WheelController<String>(
+      options: const ['One', 'Two', 'Three'],
+      value: 'One',
+    );
     await tester.pumpWidget(
       _wrap(
         WheelChoice<String>(
@@ -55,7 +61,10 @@ void main() {
   testWidgets('WheelChoice skips disabled item after scroll end (finite)', (
     tester,
   ) async {
-    final controller = FixedExtentScrollController(initialItem: 0);
+    final controller = WheelController<String>(
+      options: const ['A', 'B', 'C'],
+      value: 'A',
+    );
     final calls = <String>[];
     await tester.pumpWidget(
       _wrap(
@@ -82,9 +91,10 @@ void main() {
   testWidgets('WheelChoice loop mode: disabled snaps to nearest enabled', (
     tester,
   ) async {
-    final controller = FixedExtentScrollController(
-      initialItem: 1,
-    ); // Start at 'B'
+    final controller = WheelController<String>(
+      options: const ['A', 'B', 'C'],
+      value: 'B', // Start at 'B'
+    );
     final calls = <String>[];
     await tester.pumpWidget(
       _wrap(

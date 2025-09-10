@@ -3,6 +3,7 @@ import 'item.dart';
 import 'header.dart';
 import 'effect.dart';
 import 'overlay.dart';
+import 'controller.dart';
 
 /// A customizable picker widget that mimics a wheel or "slot machine"-like scroll selector.
 ///
@@ -101,10 +102,9 @@ class WheelChoice<T> extends StatefulWidget {
 
   /// Scroll controller for programmatic control.
   ///
-  /// If provided, its initial position takes precedence over `value` unless you
-  /// align them manually. Without a controller, an internal one is created and
-  /// initialized from `value`.
-  final FixedExtentScrollController? controller;
+  /// Use [WheelController] to change selection by value and keep options
+  /// in sync. When omitted, an internal controller is created.
+  final WheelController<T>? controller;
 
   @override
   State<WheelChoice<T>> createState() => _WheelChoiceState<T>();
@@ -112,13 +112,12 @@ class WheelChoice<T> extends StatefulWidget {
 
 /// State and behavior for [WheelChoice].
 class _WheelChoiceState<T> extends State<WheelChoice<T>> {
-  late FixedExtentScrollController _internalController;
+  late WheelController<T> _internalController;
 
   /// Resolved scroll controller (external or internal fallback).
-  FixedExtentScrollController get _controller =>
+  WheelController<T> get _controller =>
       widget.controller ?? _internalController;
 
-  late T? _currentValue;
   late WheelEffect _effect;
   double _viewportHeight = 0;
 
@@ -128,17 +127,8 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
   final _defaultItemBuilder = WheelItem.delegate();
   WheelItemBuilder<T> get _itemBuilder =>
       widget.itemBuilder ?? _defaultItemBuilder;
-
-  List<T> get _options => widget.options;
   double get _itemExtent => widget.itemExtent ?? WheelItem.defaultExtent;
   int get _itemVisible => widget.itemVisible ?? 5;
-
-  /// Index of the current value within [_options].
-  int get _selectedIndex {
-    final value = _currentValue;
-    if (value == null || !_options.contains(value)) return 0;
-    return _options.indexOf(value);
-  }
 
   double get _fixedHeight => _itemExtent * _itemVisible;
 
@@ -149,9 +139,6 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
     }
     return _effect.squeezeX;
   }
-
-  /// Whether the given [item] is disabled.
-  bool _isDisabled(T item) => widget.itemDisabled?.call(item) ?? false;
 
   /// Wraps an item with semantics and tap-to-select behavior.
   Widget _wrapWithSemanticsAndTap({
@@ -165,7 +152,9 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
       onTap: () {
         if (!disabled) {
           _controller.animateToItem(
-            _loop ? _controller.selectedItem + (index - _selectedIndex) : index,
+            _loop
+                ? _controller.selectedItem + (index - _controller.selectedIndex)
+                : index,
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOut,
           );
@@ -189,10 +178,10 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
   ListWheelChildDelegate get _childDelegate {
     if (_loop) {
       return ListWheelChildLoopingListDelegate(
-        children: List.generate(_options.length, (index) {
-          final item = _options[index];
-          final disabled = _isDisabled(item);
-          final selected = item == _currentValue;
+        children: List.generate(_controller.options.length, (index) {
+          final item = _controller.options[index];
+          final disabled = _controller.isDisabled(item);
+          final selected = item == _controller.value;
           final label = _resolveLabel(item);
           final built = _itemBuilder(
             context,
@@ -218,11 +207,11 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
     }
 
     return ListWheelChildBuilderDelegate(
-      childCount: _options.length,
+      childCount: _controller.options.length,
       builder: (context, index) {
-        final item = _options[index];
-        final disabled = _isDisabled(item);
-        final selected = item == _currentValue;
+        final item = _controller.options[index];
+        final disabled = _controller.isDisabled(item);
+        final selected = item == _controller.value;
         final label = _resolveLabel(item);
         final built = _itemBuilder(
           context,
@@ -251,24 +240,7 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
   Widget get _wheelView {
     return NotificationListener<ScrollEndNotification>(
       onNotification: (_) {
-        final index = _controller.selectedItem;
-        final actualIndex = _loop ? index % _options.length : index;
-        final item = _options[actualIndex];
-
-        if (_isDisabled(item)) {
-          final nearestIndex = _loop
-              ? _findNearestEnabledIndexLoop(actualIndex)
-              : _findNearestEnabledIndex(actualIndex);
-          if (nearestIndex != actualIndex) {
-            Future.microtask(() {
-              _controller.animateToItem(
-                _loop ? index + (nearestIndex - actualIndex) : nearestIndex,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOut,
-              );
-            });
-          }
-        }
+        _controller.handleScrollEnd(loop: _loop);
         return false;
       },
       child: ListWheelScrollView.useDelegate(
@@ -282,98 +254,60 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
         offAxisFraction: _effect.offAxisFractionX,
         overAndUnderCenterOpacity: _effect.overAndUnderCenterOpacityX,
         squeeze: _squeeze,
-        onSelectedItemChanged: _onChanged,
+        onSelectedItemChanged: (i) {
+          setState(() {
+            _controller.handleChanged(i, loop: _loop);
+          });
+        },
         childDelegate: _childDelegate,
       ),
     );
-  }
-
-  /// Finds the nearest enabled index around [fromIndex] in loop mode.
-  int _findNearestEnabledIndexLoop(int fromIndex) {
-    final len = _options.length;
-    int? bestIndex;
-    int bestDistance = len;
-
-    for (int offset = 1; offset < len; offset++) {
-      final downIndex = (fromIndex + offset) % len;
-      final upIndex = (fromIndex - offset + len) % len;
-
-      if (!_isDisabled(_options[downIndex])) {
-        final wraps = fromIndex > downIndex;
-        final effectiveDistance = offset + (wraps ? len : 0);
-        if (effectiveDistance < bestDistance) {
-          bestDistance = effectiveDistance;
-          bestIndex = downIndex;
-        }
-      }
-
-      if (!_isDisabled(_options[upIndex])) {
-        final wraps = fromIndex < upIndex;
-        final effectiveDistance = offset + (wraps ? len : 0);
-        if (effectiveDistance < bestDistance) {
-          bestDistance = effectiveDistance;
-          bestIndex = upIndex;
-        }
-      }
-
-      if (bestIndex != null && bestDistance == offset) break;
-    }
-
-    return bestIndex ?? fromIndex;
-  }
-
-  /// Finds the nearest enabled index around [fromIndex] in finite mode.
-  int _findNearestEnabledIndex(int fromIndex) {
-    int distance = 1;
-    while (fromIndex - distance >= 0 ||
-        fromIndex + distance < _options.length) {
-      final down = fromIndex + distance;
-      if (down < _options.length && !_isDisabled(_options[down])) {
-        return down;
-      }
-      final up = fromIndex - distance;
-      if (up >= 0 && !_isDisabled(_options[up])) {
-        return up;
-      }
-      distance++;
-    }
-    return fromIndex;
-  }
-
-  /// Handles selection changes from the wheel.
-  void _onChanged(int index) {
-    final actualIndex = _loop ? index % _options.length : index;
-    final newValue = _options[actualIndex];
-
-    if (!_isDisabled(newValue) && _currentValue != newValue) {
-      setState(() => _currentValue = newValue);
-      widget.onChanged?.call(newValue);
-    }
   }
 
   @override
   /// Initializes the internal state and controller.
   void initState() {
     super.initState();
-    _currentValue = widget.value;
     _effect = const WheelEffect().merge(widget.effect);
     _internalController =
         widget.controller ??
-        FixedExtentScrollController(initialItem: _selectedIndex);
+        WheelController<T>(
+          options: widget.options,
+          value: widget.value,
+          itemDisabled: widget.itemDisabled,
+          onChanged: widget.onChanged,
+        );
+    final ctrl = widget.controller;
+    if (ctrl != null) {
+      ctrl.setOptions(widget.options, alignToValue: true, animate: false);
+      ctrl.setItemDisabled(widget.itemDisabled);
+      ctrl.setOnChanged(widget.onChanged);
+      final v = widget.value;
+      if (v != null) {
+        ctrl.setValue(v as T, animate: false, notify: false);
+      }
+    }
   }
 
   @override
   /// Keeps the controller position and effects in sync with widget updates.
   void didUpdateWidget(covariant WheelChoice<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.value != _currentValue) {
-      _currentValue = widget.value;
-      final newIndex = _selectedIndex;
-      if (_controller.selectedItem != newIndex) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) _controller.jumpToItem(newIndex);
-        });
+    final ctrl = widget.controller;
+    if (ctrl != null) {
+      if (!identical(widget.options, oldWidget.options) ||
+          widget.options.length != oldWidget.options.length) {
+        ctrl.setOptions(widget.options, alignToValue: true, animate: false);
       }
+      if (widget.itemDisabled != oldWidget.itemDisabled) {
+        ctrl.setItemDisabled(widget.itemDisabled);
+      }
+      if (widget.onChanged != oldWidget.onChanged) {
+        ctrl.setOnChanged(widget.onChanged);
+      }
+    }
+    if (widget.value != _controller.value && widget.value != null) {
+      ctrl?.setValue(widget.value as T, animate: false, notify: false);
     }
     if (widget.effect != oldWidget.effect) {
       _effect = const WheelEffect().merge(widget.effect);
