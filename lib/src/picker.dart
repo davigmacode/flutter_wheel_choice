@@ -274,7 +274,7 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
         WheelController<T>(
           options: widget.options,
           value: widget.value,
-          itemDisabled: widget.itemDisabled,
+          valueDisabled: widget.itemDisabled,
           onChanged: widget.onChanged,
         );
     final ctrl = widget.controller;

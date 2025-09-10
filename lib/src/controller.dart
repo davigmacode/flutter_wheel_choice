@@ -8,11 +8,11 @@ class WheelController<T> extends FixedExtentScrollController {
     required List<T> options,
     T? value,
     int? initialIndex,
-    WheelItemDisable<T>? itemDisabled,
+    WheelItemDisable<T>? valueDisabled,
     ValueChanged<T>? onChanged,
   }) : _options = List<T>.from(options),
        _value = value,
-       _itemDisabled = itemDisabled,
+       _valueDisabled = valueDisabled,
        _onChanged = onChanged,
        super(
          initialItem: initialIndex ?? _initialIndex(options, value),
@@ -28,7 +28,7 @@ class WheelController<T> extends FixedExtentScrollController {
 
   List<T> _options;
   T? _value;
-  WheelItemDisable<T>? _itemDisabled;
+  WheelItemDisable<T>? _valueDisabled;
   ValueChanged<T>? _onChanged;
 
   /// Current options used to resolve indices.
@@ -46,7 +46,7 @@ class WheelController<T> extends FixedExtentScrollController {
   }
 
   /// Predicate to check whether an item is disabled.
-  bool isDisabled(T item) => _itemDisabled?.call(item) ?? false;
+  bool isDisabled(T item) => _valueDisabled?.call(item) ?? false;
 
   /// Replaces the options list. When [alignToValue] is true and the
   /// current [value] exists in the new list, scrolls to its index.
@@ -71,7 +71,7 @@ class WheelController<T> extends FixedExtentScrollController {
   }
 
   /// Updates the itemDisabled resolver.
-  void setItemDisabled(WheelItemDisable<T>? f) => _itemDisabled = f;
+  void setItemDisabled(WheelItemDisable<T>? f) => _valueDisabled = f;
 
   /// Updates the onChanged callback.
   void setOnChanged(ValueChanged<T>? f) => _onChanged = f;
