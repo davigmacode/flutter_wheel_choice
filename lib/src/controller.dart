@@ -11,11 +11,16 @@ class WheelController<T> extends FixedExtentScrollController {
     WheelItemDisable<T>? valueDisabled,
     ValueChanged<T>? onChanged,
     bool? loop,
+    Duration? animationDuration,
+    Curve? animationCurve,
   }) : _options = List<T>.from(options),
        _value = value,
        _valueDisabled = valueDisabled,
        _onChanged = onChanged,
        _loop = loop ?? false,
+       _animationDuration =
+           animationDuration ?? const Duration(milliseconds: 250),
+       _animationCurve = animationCurve ?? Curves.ease,
        super(
          initialItem: initialIndex ?? _initialIndex(options, value),
        );
@@ -33,6 +38,8 @@ class WheelController<T> extends FixedExtentScrollController {
   WheelItemDisable<T>? _valueDisabled;
   ValueChanged<T>? _onChanged;
   bool _loop;
+  Duration _animationDuration;
+  Curve _animationCurve;
 
   /// Current options used to resolve indices.
   List<T> get options => List.unmodifiable(_options);
@@ -54,6 +61,14 @@ class WheelController<T> extends FixedExtentScrollController {
   /// Whether the wheel should wrap around when scrolling by index.
   bool get loop => _loop;
   void setLoop(bool? value) => _loop = value ?? false;
+
+  /// Default animation duration/curve used when not provided to animate* calls.
+  Duration get animationDuration => _animationDuration;
+  Curve get animationCurve => _animationCurve;
+  void setAnimationDefaults({Duration? duration, Curve? curve}) {
+    _animationDuration = duration ?? _animationDuration;
+    _animationCurve = curve ?? _animationCurve;
+  }
 
   /// Replaces the options list. When [alignToValue] is true and the
   /// current [value] exists in the new list, scrolls to its index.
@@ -239,8 +254,8 @@ class WheelController<T> extends FixedExtentScrollController {
   /// Animates to an item by its index and updates [value].
   Future<void> animateToIndex(
     int index, {
-    Duration duration = const Duration(milliseconds: 250),
-    Curve curve = Curves.ease,
+    Duration? duration,
+    Curve? curve,
     bool notify = true,
   }) async {
     if (_options.isEmpty) return;
@@ -248,7 +263,9 @@ class WheelController<T> extends FixedExtentScrollController {
     final targetIndex = _loop ? _loopTargetForBaseIndex(baseIndex) : baseIndex;
     _value = _options[baseIndex];
     if (selectedItem != targetIndex) {
-      await animateToItem(targetIndex, duration: duration, curve: curve);
+      final d = duration ?? _animationDuration;
+      final c = curve ?? _animationCurve;
+      await animateToItem(targetIndex, duration: d, curve: c);
     }
     if (notify) _onChanged?.call(_value as T);
   }
@@ -269,8 +286,8 @@ class WheelController<T> extends FixedExtentScrollController {
   /// Animates to an item by its value. Returns `true` if found.
   Future<bool> animateToValue(
     T value, {
-    Duration duration = const Duration(milliseconds: 250),
-    Curve curve = Curves.ease,
+    Duration? duration,
+    Curve? curve,
     bool notify = true,
   }) async {
     final baseIndex = _options.indexOf(value);
@@ -278,7 +295,9 @@ class WheelController<T> extends FixedExtentScrollController {
     final targetIndex = _loop ? _loopTargetForBaseIndex(baseIndex) : baseIndex;
     _value = value;
     if (selectedItem != targetIndex) {
-      await animateToItem(targetIndex, duration: duration, curve: curve);
+      final d = duration ?? _animationDuration;
+      final c = curve ?? _animationCurve;
+      await animateToItem(targetIndex, duration: d, curve: c);
     }
     if (notify) _onChanged?.call(value);
     return true;
