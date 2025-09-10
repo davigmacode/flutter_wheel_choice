@@ -5,22 +5,22 @@ import 'item.dart';
 /// options and current value, enabling programmatic selection by value.
 class WheelController<T> extends FixedExtentScrollController {
   WheelController({
-    required List<T> options,
+    List<T>? options,
     T? value,
     WheelItemDisable<T>? valueDisabled,
     ValueChanged<T>? onChanged,
     bool? loop,
     Duration? animationDuration,
     Curve? animationCurve,
-  }) : _options = List<T>.from(options),
+  }) : _options = List<T>.from(options ?? []),
        _value = value,
        _valueDisabled = valueDisabled,
        _onChanged = onChanged,
        _loop = loop ?? false,
        _animationDuration =
            animationDuration ?? const Duration(milliseconds: 250),
-       _animationCurve = animationCurve ?? Curves.ease,
-       super(initialItem: _initialIndex(options, value));
+       _animationCurve = animationCurve ?? Curves.easeOut,
+       super(initialItem: _initialIndex(options ?? [], value));
 
   static int _initialIndex<T>(List<T> options, T? value) {
     if (value != null) {
@@ -70,18 +70,21 @@ class WheelController<T> extends FixedExtentScrollController {
   /// Replaces the options list. When [alignToValue] is true and the
   /// current [value] exists in the new list, scrolls to its index.
   void setOptions(
-    List<T> options, {
+    List<T>? options, {
     bool alignToValue = true,
     bool animate = false,
-    Duration duration = const Duration(milliseconds: 250),
-    Curve curve = Curves.ease,
+    Duration? duration,
+    Curve? curve,
   }) {
+    if (options == null) return;
     _options = List<T>.from(options);
     if (alignToValue && _value != null) {
       final idx = _options.indexOf(_value as T);
       if (idx >= 0) {
         if (animate) {
-          animateToItem(idx, duration: duration, curve: curve);
+          final d = duration ?? _animationDuration;
+          final c = curve ?? _animationCurve;
+          animateToItem(idx, duration: d, curve: c);
         } else {
           jumpToItem(idx);
         }
@@ -100,8 +103,8 @@ class WheelController<T> extends FixedExtentScrollController {
   Future<bool> setValue(
     T value, {
     bool animate = false,
-    Duration duration = const Duration(milliseconds: 250),
-    Curve curve = Curves.ease,
+    Duration? duration,
+    Curve? curve,
     bool notify = true,
   }) async {
     final idx = _options.indexOf(value);
@@ -109,7 +112,9 @@ class WheelController<T> extends FixedExtentScrollController {
     _value = value;
     if (selectedItem != idx) {
       if (animate) {
-        await animateToItem(idx, duration: duration, curve: curve);
+        final d = duration ?? _animationDuration;
+        final c = curve ?? _animationCurve;
+        await animateToItem(idx, duration: d, curve: c);
       } else {
         jumpToItem(idx);
       }
@@ -139,8 +144,8 @@ class WheelController<T> extends FixedExtentScrollController {
   /// Ensures that when landing on a disabled item, the wheel snaps to the
   /// nearest enabled item according to [loop] mode.
   void handleScrollEnd({
-    Duration duration = const Duration(milliseconds: 300),
-    Curve curve = Curves.easeOut,
+    Duration? duration,
+    Curve? curve,
   }) {
     if (_options.isEmpty) return;
     final index = selectedItem;
@@ -155,7 +160,9 @@ class WheelController<T> extends FixedExtentScrollController {
             ? index + (nearestIndex - actualIndex)
             : nearestIndex;
         Future.microtask(() {
-          animateToItem(target, duration: duration, curve: curve);
+          final d = duration ?? _animationDuration;
+          final c = curve ?? _animationCurve;
+          animateToItem(target, duration: d, curve: c);
         });
       }
     }

@@ -44,8 +44,8 @@ class WheelChoice<T> extends StatefulWidget {
   /// Creates a [WheelChoice] with various customization options.
   const WheelChoice({
     super.key,
-    required this.options,
     this.value,
+    this.options,
     this.onChanged,
     this.controller,
     this.itemLabel,
@@ -64,7 +64,7 @@ class WheelChoice<T> extends StatefulWidget {
   final T? value;
 
   /// The available selectable options.
-  final List<T> options;
+  final List<T>? options;
 
   /// Called when a different item is selected.
   final ValueChanged<T>? onChanged;
@@ -261,9 +261,10 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
   /// Initializes the internal state and controller.
   void initState() {
     super.initState();
-    _effect = const WheelEffect().merge(widget.effect);
+    final ctrl = widget.controller;
+
     _internalController =
-        widget.controller ??
+        ctrl ??
         WheelController<T>(
           options: widget.options,
           value: widget.value,
@@ -271,17 +272,34 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
           onChanged: widget.onChanged,
           loop: widget.loop,
         );
-    final ctrl = widget.controller;
+
     if (ctrl != null) {
-      ctrl.setOptions(widget.options, alignToValue: true, animate: false);
-      ctrl.setItemDisabled(widget.itemDisabled);
-      ctrl.setOnChanged(widget.onChanged);
-      ctrl.setLoop(widget.loop);
-      final v = widget.value;
-      if (v != null) {
-        ctrl.setValue(v as T, animate: false, notify: false);
+      if (widget.options != null) {
+        _internalController.setOptions(
+          widget.options,
+          alignToValue: true,
+          animate: false,
+        );
+      }
+      if (widget.itemDisabled != null) {
+        _internalController.setItemDisabled(widget.itemDisabled);
+      }
+      if (widget.onChanged != null) {
+        _internalController.setOnChanged(widget.onChanged);
+      }
+      if (widget.loop != null) {
+        _internalController.setLoop(widget.loop);
+      }
+      if (widget.value != null) {
+        _internalController.setValue(
+          widget.value as T,
+          animate: false,
+          notify: false,
+        );
       }
     }
+
+    _effect = const WheelEffect().merge(widget.effect);
   }
 
   @override
@@ -291,7 +309,8 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
     final ctrl = widget.controller;
     if (ctrl != null) {
       if (!identical(widget.options, oldWidget.options) ||
-          widget.options.length != oldWidget.options.length) {
+          widget.options != oldWidget.options ||
+          widget.options?.length != oldWidget.options?.length) {
         ctrl.setOptions(widget.options, alignToValue: true, animate: false);
       }
       if (widget.itemDisabled != oldWidget.itemDisabled) {
@@ -300,7 +319,7 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
       if (widget.onChanged != oldWidget.onChanged) {
         ctrl.setOnChanged(widget.onChanged);
       }
-      if ((widget.loop) != (oldWidget.loop)) {
+      if (widget.loop != oldWidget.loop) {
         ctrl.setLoop(widget.loop);
       }
     }
@@ -310,6 +329,15 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
     if (widget.effect != oldWidget.effect) {
       _effect = const WheelEffect().merge(widget.effect);
     }
+  }
+
+  @override
+  void dispose() {
+    // Dispose only when using the internal controller we created.
+    if (widget.controller == null) {
+      _internalController.dispose();
+    }
+    super.dispose();
   }
 
   @override

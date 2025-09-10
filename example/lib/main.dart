@@ -42,6 +42,16 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
   int _minute = 30;
   String _fruit = 'Banana';
 
+  late final WheelController<int> _minuteController = WheelController<int>(
+    options: _minutes,
+    value: _minute,
+    onChanged: (v) => setState(() => _minute = v),
+    valueDisabled: (v) => v % 5 != 0, // only multiples of 5
+    animationDuration: const Duration(milliseconds: 300),
+    animationCurve: Curves.easeOutCubic,
+    loop: true,
+  );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,11 +96,8 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
                 const Text('Pick minutes'),
                 const SizedBox(height: 8),
                 WheelChoice<int>(
-                  options: _minutes,
-                  value: _minute,
-                  onChanged: (v) => setState(() => _minute = v),
+                  controller: _minuteController,
                   itemLabel: (v) => v.toString().padLeft(2, '0'),
-                  itemDisabled: (v) => v % 5 != 0, // only multiples of 5
                   itemVisible: 7,
                   overlay: WheelOverlay.filled(
                     color: Colors.indigo.withValues(alpha: 0.06),
@@ -107,6 +114,28 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
                 ),
                 const SizedBox(height: 8),
                 Text('Selected: ${_minute.toString().padLeft(2, '0')}'),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () => _minuteController.animateToValue(45),
+                      child: const Text('Animate to 45'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => _minuteController.jumpToValue(0),
+                      child: const Text('Jump to 00'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        final next = _minuteController.selectedIndex + 1;
+                        _minuteController.animateToIndex(next);
+                      },
+                      child: const Text('Next index'),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
