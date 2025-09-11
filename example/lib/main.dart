@@ -55,10 +55,13 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
   static const _fruits = [
     'Apple',
     'Banana',
+    'Cat',
     'Cherry',
+    'Dog',
     'Durian',
     'Grape',
     'Jackfruit',
+    'Kiwi',
     'Mango',
     'Papaya',
     'Rambutan',
@@ -97,6 +100,8 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     final section1 = _Section(
       title: 'Basic',
       subtitle: 'Pick month and day',
@@ -226,6 +231,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
             options: _fruits,
             value: _fruit,
             onChanged: (v) => setState(() => _fruit = v),
+            itemDisabled: (v) => ['Cat', 'Dog'].contains(v),
             itemBuilder: (context, item) {
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -238,13 +244,16 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
                           Icons.circle,
                           size: 10,
                           color: item.selected
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.outlineVariant,
+                              ? theme.colorScheme.primary
+                              : item.disabled
+                              ? theme.disabledColor
+                              : theme.unselectedWidgetColor,
                         ),
                         const SizedBox(width: 8),
                         Text(
                           item.label,
                           style: TextStyle(
+                            color: item.disabled ? theme.disabledColor : null,
                             fontWeight: item.selected ? FontWeight.bold : null,
                           ),
                         ),
