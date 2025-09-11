@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'item.dart';
 
@@ -38,6 +39,8 @@ class WheelController<T> extends FixedExtentScrollController {
        _animationDuration =
            animationDuration ?? const Duration(milliseconds: 250),
        _animationCurve = animationCurve ?? Curves.easeOut,
+       _indexNotifier = ValueNotifier<int>(_initialIndex(options ?? [], value)),
+       _valueNotifier = ValueNotifier<T?>(value),
        super(initialItem: _initialIndex(options ?? [], value));
 
   static int _initialIndex<T>(List<T> options, T? value) {
@@ -55,12 +58,20 @@ class WheelController<T> extends FixedExtentScrollController {
   bool _loop;
   Duration _animationDuration;
   Curve _animationCurve;
+  final ValueNotifier<int> _indexNotifier;
+  final ValueNotifier<T?> _valueNotifier;
 
   /// Current options used to resolve indices.
   List<T> get options => List.unmodifiable(_options);
 
   /// Currently selected value tracked by this controller.
   T? get value => _value;
+
+  /// Read-only listenable for the current index.
+  ValueListenable<int> get indexListenable => _indexNotifier;
+
+  /// Read-only listenable for the current [value].
+  ValueListenable<T?> get valueListenable => _valueNotifier;
 
   /// Index of the current [value] in [options], or 0 when unknown.
   int get selectedIndex {
@@ -136,10 +147,37 @@ class WheelController<T> extends FixedExtentScrollController {
     return jumpToValue(value);
   }
 
+  /// Sets the current index, optionally animating to it.
+  ///
+  /// Disabled-awareness:
+  /// - When [animate] is true, this method is disabled-aware (uses
+  ///   [animateToIndex], which snaps to nearest enabled when needed).
+  /// - When [animate] is false, it jumps directly via [jumpToIndex] (not
+  ///   disabled-aware).
+  Future<bool> setIndex(
+    int index, {
+    bool animate = false,
+    Duration? duration,
+    Curve? curve,
+    bool notify = true,
+  }) async {
+    if (animate) {
+      return await animateToIndex(
+        index,
+        duration: duration,
+        curve: curve,
+        notify: notify,
+      );
+    }
+    return jumpToIndex(index, notify: notify);
+  }
+
   /// Synchronizes the tracked [value] from a selected index.
   void syncValueFromIndex(int index) {
     if (index >= 0 && index < _options.length) {
       _value = _options[index];
+      _valueNotifier.value = _value;
+      _indexNotifier.value = index;
     }
   }
 
@@ -150,6 +188,8 @@ class WheelController<T> extends FixedExtentScrollController {
     final newValue = _options[actualIndex];
     if (!isDisabled(newValue) && _value != newValue) {
       _value = newValue;
+      _valueNotifier.value = _value;
+      _indexNotifier.value = actualIndex;
       _onChanged?.call(newValue);
     }
   }
@@ -265,6 +305,8 @@ class WheelController<T> extends FixedExtentScrollController {
     final baseIndex = _clampIndex(index);
     final targetIndex = _loop ? _loopTargetForBaseIndex(baseIndex) : baseIndex;
     _value = _options[baseIndex];
+    _valueNotifier.value = _value;
+    _indexNotifier.value = baseIndex;
     if (selectedItem != targetIndex) {
       jumpToItem(targetIndex);
     }
@@ -291,6 +333,8 @@ class WheelController<T> extends FixedExtentScrollController {
     }
     final targetIndex = _loop ? _loopTargetForBaseIndex(baseIndex) : baseIndex;
     _value = _options[baseIndex];
+    _valueNotifier.value = _value;
+    _indexNotifier.value = baseIndex;
     if (selectedItem != targetIndex) {
       final d = duration ?? _animationDuration;
       final c = curve ?? _animationCurve;
@@ -333,28 +377,10 @@ class WheelController<T> extends FixedExtentScrollController {
     return true;
   }
 
-  /// Sets the current index, optionally animating to it.
-  ///
-  /// Disabled-awareness:
-  /// - When [animate] is true, this method is disabled-aware (uses
-  ///   [animateToIndex], which snaps to nearest enabled when needed).
-  /// - When [animate] is false, it jumps directly via [jumpToIndex] (not
-  ///   disabled-aware).
-  Future<bool> setIndex(
-    int index, {
-    bool animate = false,
-    Duration? duration,
-    Curve? curve,
-    bool notify = true,
-  }) async {
-    if (animate) {
-      return await animateToIndex(
-        index,
-        duration: duration,
-        curve: curve,
-        notify: notify,
-      );
-    }
-    return jumpToIndex(index, notify: notify);
+  @override
+  void dispose() {
+    _indexNotifier.dispose();
+    _valueNotifier.dispose();
+    super.dispose();
   }
 }
