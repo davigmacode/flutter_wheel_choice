@@ -35,21 +35,39 @@ class ExampleHomePage extends StatefulWidget {
 
 class _ExampleHomePageState extends State<ExampleHomePage> {
   static const _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  static final _hours = List<int>.generate(12, (i) => i + 1);
   static final _minutes = List<int>.generate(60, (i) => i);
+  static const _periods = ['AM', 'PM'];
   static const _fruits = ['Apple', 'Banana', 'Cherry', 'Grape', 'Mango'];
 
   String _day = 'Wed';
+  int _hour = 10;
   int _minute = 30;
+  String _period = 'AM';
   String _fruit = 'Banana';
 
-  late final WheelController<int> _minuteController = WheelController<int>(
+  late final _hourController = WheelController<int>(
+    options: _hours,
+    value: _hour,
+    onChanged: (v) => setState(() => _hour = v),
+    animationDuration: const Duration(milliseconds: 300),
+    animationCurve: Curves.easeOutCubic,
+  );
+
+  late final _minuteController = WheelController<int>(
     options: _minutes,
     value: _minute,
     onChanged: (v) => setState(() => _minute = v),
-    valueDisabled: (v) => v % 5 != 0, // only multiples of 5
     animationDuration: const Duration(milliseconds: 300),
     animationCurve: Curves.easeOutCubic,
-    loop: true,
+  );
+
+  late final _periodController = WheelController<String>(
+    options: _periods,
+    value: _period,
+    onChanged: (v) => setState(() => _period = v),
+    animationDuration: const Duration(milliseconds: 300),
+    animationCurve: Curves.easeOutCubic,
   );
 
   @override
@@ -76,48 +94,72 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
     );
 
     final section2 = _Section(
-      title: 'Numeric with disabled items',
-      subtitle: 'Pick minutes',
+      title: 'Time picker',
+      subtitle: 'Pick hour, minute, and AM/PM',
       children: [
         SizedBox(
           height: 300,
-          child: WheelChoice<int>(
-            controller: _minuteController,
-            itemLabel: (v) => v.toString().padLeft(2, '0'),
-            overlay: WheelOverlay.filled(
-              color: Colors.indigo.withValues(alpha: 0.06),
-              cornerRadius: 8,
-              inset: 12,
-            ),
-            effect: const WheelEffect.flat(
-              useMagnifier: true,
-              magnification: 1.12,
-              perspective: 0.0025,
-            ),
-            header: const WheelHeader(child: Text('Minutes')),
-            expanded: true,
-            loop: true,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Expanded(
+                child: WheelChoice<int>(
+                  controller: _hourController,
+                  itemLabel: (v) => v.toString().padLeft(2, '0'),
+                  overlay: WheelOverlay.outlined(inset: 0),
+                  effect: WheelEffect.flat(),
+                  header: const WheelHeader(child: Text('Hour')),
+                  expanded: true,
+                  // loop: true,
+                ),
+              ),
+              Expanded(
+                child: WheelChoice<int>(
+                  controller: _minuteController,
+                  itemLabel: (v) => v.toString().padLeft(2, '0'),
+                  overlay: WheelOverlay.outlined(inset: 0),
+                  effect: WheelEffect.flat(),
+                  header: const WheelHeader(child: Text('Minute')),
+                  expanded: true,
+                  // loop: true,
+                ),
+              ),
+              Expanded(
+                child: WheelChoice<String>(
+                  controller: _periodController,
+                  overlay: WheelOverlay.outlined(inset: 0),
+                  effect: WheelEffect.flat(),
+                  header: const WheelHeader(child: Text('AM/PM')),
+                  expanded: true,
+                ),
+              ),
+            ],
           ),
         ),
-        Text('Selected: ${_minute.toString().padLeft(2, '0')}'),
+        Text(
+          'Selected: ${_hour.toString().padLeft(2, '0')}:${_minute.toString().padLeft(2, '0')} $_period',
+        ),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: [
             ElevatedButton(
-              onPressed: () => _minuteController.animateToValue(45),
-              child: const Text('Animate to 45'),
-            ),
-            ElevatedButton(
-              onPressed: () => _minuteController.jumpToValue(0),
-              child: const Text('Jump to 00'),
+              onPressed: () async {
+                await Future.wait([
+                  _hourController.animateToValue(7),
+                  _minuteController.animateToValue(45),
+                  _periodController.animateToValue('PM'),
+                ]);
+              },
+              child: const Text('Animate to 07:45 PM'),
             ),
             ElevatedButton(
               onPressed: () {
-                final next = _minuteController.selectedIndex + 1;
-                _minuteController.animateToIndex(next);
+                _hourController.jumpToValue(2);
+                _minuteController.jumpToValue(11);
+                _periodController.jumpToValue('AM');
               },
-              child: const Text('Next index'),
+              child: const Text('Jump to 02:11 AM'),
             ),
           ],
         ),
