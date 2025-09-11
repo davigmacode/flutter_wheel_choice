@@ -115,17 +115,16 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
   late bool _expanded;
   late WheelEffect _effect;
   late WheelItemBuilder<T> _itemBuilder;
-  late WheelController<T> _internalController;
+  late WheelController<T> _internalCtrl;
 
   /// Resolved scroll controller (external or internal fallback).
-  WheelController<T> get _controller =>
-      widget.controller ?? _internalController;
+  WheelController<T> get _ctrl => widget.controller ?? _internalCtrl;
 
   IndexedWidgetBuilder _childBuilder(double extent) {
     return (context, i) {
-      final item = _controller.options[i];
-      final disabled = _controller.isDisabled(item);
-      final selected = item == _controller.value;
+      final item = _ctrl.options[i];
+      final disabled = _ctrl.isDisabled(item);
+      final selected = item == _ctrl.value;
       final label = widget.itemLabel?.call(item) ?? item.toString();
       final built = _itemBuilder(
         context,
@@ -142,7 +141,7 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
         height: extent,
         child: GestureDetector(
           onTap: () {
-            if (!disabled) _controller.animateToIndex(i);
+            if (!disabled) _ctrl.animateToIndex(i);
           },
           child: Semantics(
             button: true,
@@ -160,16 +159,16 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
     BuildContext context,
     IndexedWidgetBuilder builder,
   ) {
-    if (_controller.loop) {
+    if (_ctrl.loop) {
       return ListWheelChildLoopingListDelegate(
         children: List.generate(
-          _controller.options.length,
+          _ctrl.options.length,
           (i) => builder(context, i),
         ),
       );
     }
     return ListWheelChildBuilderDelegate(
-      childCount: _controller.options.length,
+      childCount: _ctrl.options.length,
       builder: builder,
     );
   }
@@ -186,7 +185,7 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
         offset: widget.header?.extent,
         extent: itemExtent,
         child: _WheelView(
-          controller: _controller,
+          controller: _ctrl,
           effect: _effect,
           itemExtent: itemExtent,
           childDelegate: _childDelegate(context, itemBuilder),
@@ -217,7 +216,7 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
             offset: widget.header?.extent,
             extent: itemExtent,
             child: _WheelView(
-              controller: _controller,
+              controller: _ctrl,
               effect: _effect.copyWith(squeeze: squeeze),
               itemExtent: itemExtent,
               childDelegate: _childDelegate(context, itemBuilder),
@@ -234,7 +233,7 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
     super.initState();
     final ctrl = widget.controller;
 
-    _internalController =
+    _internalCtrl =
         ctrl ??
         WheelController<T>(
           options: widget.options,
@@ -246,23 +245,23 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
 
     if (ctrl != null) {
       if (widget.options != null) {
-        _internalController.setOptions(
+        _internalCtrl.setOptions(
           widget.options,
           alignToValue: true,
           animate: false,
         );
       }
       if (widget.itemDisabled != null) {
-        _internalController.setItemDisabled(widget.itemDisabled);
+        _internalCtrl.setItemDisabled(widget.itemDisabled);
       }
       if (widget.onChanged != null) {
-        _internalController.setOnChanged(widget.onChanged);
+        _internalCtrl.setOnChanged(widget.onChanged);
       }
       if (widget.loop != null) {
-        _internalController.setLoop(widget.loop);
+        _internalCtrl.setLoop(widget.loop);
       }
       if (widget.value != null) {
-        _internalController.setValue(
+        _internalCtrl.setValue(
           widget.value as T,
           animate: false,
           notify: false,
@@ -296,7 +295,7 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
         ctrl.setLoop(widget.loop);
       }
     }
-    if (widget.value != _controller.value && widget.value != null) {
+    if (widget.value != _ctrl.value && widget.value != null) {
       ctrl?.setValue(widget.value as T, animate: false, notify: false);
     }
     if (widget.expanded != oldWidget.expanded) {
@@ -314,7 +313,7 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
   void dispose() {
     // Dispose only when using the internal controller we created.
     if (widget.controller == null) {
-      _internalController.dispose();
+      _internalCtrl.dispose();
     }
     super.dispose();
   }
