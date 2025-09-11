@@ -79,22 +79,25 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
       title: 'Numeric with disabled items',
       subtitle: 'Pick minutes',
       children: [
-        WheelChoice<int>(
-          controller: _minuteController,
-          itemLabel: (v) => v.toString().padLeft(2, '0'),
-          itemVisible: 7,
-          overlay: WheelOverlay.filled(
-            color: Colors.indigo.withValues(alpha: 0.06),
-            cornerRadius: 8,
-            inset: 12,
+        SizedBox(
+          height: 300,
+          child: WheelChoice<int>(
+            controller: _minuteController,
+            itemLabel: (v) => v.toString().padLeft(2, '0'),
+            overlay: WheelOverlay.filled(
+              color: Colors.indigo.withValues(alpha: 0.06),
+              cornerRadius: 8,
+              inset: 12,
+            ),
+            effect: const WheelEffect.flat(
+              useMagnifier: true,
+              magnification: 1.12,
+              perspective: 0.0025,
+            ),
+            header: const WheelHeader(child: Text('Minutes')),
+            expanded: true,
+            loop: true,
           ),
-          effect: const WheelEffect.flat(
-            useMagnifier: true,
-            magnification: 1.12,
-            perspective: 0.0025,
-          ),
-          header: const WheelHeader(child: Text('Minutes')),
-          loop: true,
         ),
         Text('Selected: ${_minute.toString().padLeft(2, '0')}'),
         Wrap(
