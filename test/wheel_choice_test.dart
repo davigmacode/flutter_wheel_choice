@@ -61,7 +61,7 @@ void main() {
     final controller = WheelController<String>(
       options: const ['A', 'B', 'C'],
       value: 'A',
-      valueDisabled: (v) => v == 'B',
+      itemDisabled: (v) => v == 'B',
       onChanged: calls.add,
     );
     await tester.pumpWidget(
@@ -90,7 +90,7 @@ void main() {
       options: const ['A', 'B', 'C'],
       value: 'B', // Start at 'B'
       loop: true,
-      valueDisabled: (v) => v == 'A',
+      itemDisabled: (v) => v == 'A',
       onChanged: calls.add,
     );
     await tester.pumpWidget(

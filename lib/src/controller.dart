@@ -11,7 +11,7 @@ class WheelController<T> extends FixedExtentScrollController {
   ///   indices and map between wheel positions and semantic values.
   /// - [value]: Initial selected value. When present and found in [options],
   ///   it determines the starting position.
-  /// - [valueDisabled]: Predicate to mark values as disabled. Disabled values
+  /// - [itemDisabled]: Predicate to mark values as disabled. Disabled values
   ///   do not trigger [onChanged] and are skipped by settle logic.
   /// - [onChanged]: Callback invoked when the selection changes, either via
   ///   user scroll or programmatic methods like [setValue], [jumpToValue],
@@ -25,14 +25,14 @@ class WheelController<T> extends FixedExtentScrollController {
   WheelController({
     List<T>? options,
     T? value,
-    WheelItemDisable<T>? valueDisabled,
+    WheelItemDisable<T>? itemDisabled,
     ValueChanged<T>? onChanged,
     bool? loop,
     Duration? animationDuration,
     Curve? animationCurve,
   }) : _options = List<T>.from(options ?? []),
        _value = value,
-       _valueDisabled = valueDisabled,
+       _itemDisabled = itemDisabled,
        _onChanged = onChanged,
        _loop = loop ?? false,
        _animationDuration =
@@ -50,7 +50,7 @@ class WheelController<T> extends FixedExtentScrollController {
 
   List<T> _options;
   T? _value;
-  WheelItemDisable<T>? _valueDisabled;
+  WheelItemDisable<T>? _itemDisabled;
   ValueChanged<T>? _onChanged;
   bool _loop;
   Duration _animationDuration;
@@ -71,7 +71,7 @@ class WheelController<T> extends FixedExtentScrollController {
   }
 
   /// Predicate to check whether an item is disabled.
-  bool isDisabled(T item) => _valueDisabled?.call(item) ?? false;
+  bool isDisabled(T item) => _itemDisabled?.call(item) ?? false;
 
   /// Whether the wheel should wrap around when scrolling by index.
   bool get loop => _loop;
@@ -111,7 +111,7 @@ class WheelController<T> extends FixedExtentScrollController {
   }
 
   /// Updates the itemDisabled resolver.
-  void setItemDisabled(WheelItemDisable<T>? f) => _valueDisabled = f;
+  void setItemDisabled(WheelItemDisable<T>? f) => _itemDisabled = f;
 
   /// Updates the onChanged callback.
   void setOnChanged(ValueChanged<T>? f) => _onChanged = f;

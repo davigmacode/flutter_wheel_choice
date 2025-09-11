@@ -65,7 +65,7 @@ class WheelChoice<T> extends StatefulWidget {
          value: value,
          options: options,
          onChanged: onChanged,
-         valueDisabled: itemDisabled,
+         itemDisabled: itemDisabled,
          loop: loop,
          animationDuration: animationDuration,
          animationCurve: animationCurve,
