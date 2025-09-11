@@ -58,6 +58,8 @@ class WheelChoice<T> extends StatefulWidget {
     this.header,
     this.overlay,
     this.effect,
+    this.physics,
+    this.clipBehavior,
     this.expanded,
   }) : controller = WheelController(
          value: value,
@@ -67,7 +69,8 @@ class WheelChoice<T> extends StatefulWidget {
          loop: loop,
          animationDuration: animationDuration,
          animationCurve: animationCurve,
-       ), _ownsController = true;
+       ),
+       _ownsController = true;
 
   const WheelChoice.raw({
     super.key,
@@ -79,6 +82,8 @@ class WheelChoice<T> extends StatefulWidget {
     this.header,
     this.overlay,
     this.effect,
+    this.physics,
+    this.clipBehavior,
     this.expanded,
   }) : _ownsController = false;
 
@@ -103,6 +108,12 @@ class WheelChoice<T> extends StatefulWidget {
 
   /// Visual effects configuration for the wheel's 3D appearance.
   final WheelEffect? effect;
+
+  /// Optional scroll physics to use for the wheel.
+  final ScrollPhysics? physics;
+
+  /// Optional clip behavior for the wheel viewport.
+  final Clip? clipBehavior;
 
   /// Whether to automatically expand to parent height.
   final bool? expanded;
@@ -194,6 +205,8 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
         child: _WheelView(
           controller: _ctrl,
           effect: _effect,
+          physics: widget.physics,
+          clipBehavior: widget.clipBehavior,
           itemExtent: itemExtent,
           childDelegate: _childDelegate(context, itemBuilder),
         ),
@@ -254,6 +267,8 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
             child: _WheelView(
               controller: _ctrl,
               effect: _effect.copyWith(squeeze: squeeze),
+              physics: widget.physics,
+              clipBehavior: widget.clipBehavior,
               itemExtent: itemExtent,
               childDelegate: _childDelegate(context, itemBuilder),
             ),
@@ -328,12 +343,16 @@ class _WheelView extends StatelessWidget {
     required this.effect,
     required this.itemExtent,
     required this.childDelegate,
+    this.physics,
+    this.clipBehavior,
   });
 
   final WheelController controller;
   final WheelEffect effect;
   final double itemExtent;
   final ListWheelChildDelegate childDelegate;
+  final ScrollPhysics? physics;
+  final Clip? clipBehavior;
 
   @override
   Widget build(BuildContext context) {
@@ -343,9 +362,10 @@ class _WheelView extends StatelessWidget {
         return false;
       },
       child: ListWheelScrollView.useDelegate(
-        physics: const FixedExtentScrollPhysics(),
+        physics: physics ?? const FixedExtentScrollPhysics(),
         controller: controller,
         itemExtent: itemExtent,
+        clipBehavior: clipBehavior ?? Clip.hardEdge,
         useMagnifier: effect.useMagnifierX,
         magnification: effect.magnificationX,
         diameterRatio: effect.diameterRatioX,
