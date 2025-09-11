@@ -4,6 +4,24 @@ import 'item.dart';
 /// Controller for [FixedExtentScrollController] that understands the picker
 /// options and current value, enabling programmatic selection by value.
 class WheelController<T> extends FixedExtentScrollController {
+  /// Creates a value-aware controller for a wheel.
+  ///
+  /// Parameters:
+  /// - [options]: The ordered list of selectable values. Used to resolve
+  ///   indices and map between wheel positions and semantic values.
+  /// - [value]: Initial selected value. When present and found in [options],
+  ///   it determines the starting position.
+  /// - [valueDisabled]: Predicate to mark values as disabled. Disabled values
+  ///   do not trigger [onChanged] and are skipped by settle logic.
+  /// - [onChanged]: Callback invoked when the selection changes, either via
+  ///   user scroll or programmatic methods like [setValue], [jumpToValue],
+  ///   [animateToValue], [jumpToIndex], or [animateToIndex].
+  /// - [loop]: Enables wrap-around semantics for programmatic moves and
+  ///   nearest-enabled snapping during settle.
+  /// - [animationDuration]: Default duration used by [animateToValue] and
+  ///   [animateToIndex] when a duration isn’t supplied.
+  /// - [animationCurve]: Default curve used by [animateToValue] and
+  ///   [animateToIndex] when a curve isn’t supplied.
   WheelController({
     List<T>? options,
     T? value,
