@@ -52,14 +52,24 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
   static final _hours = List<int>.generate(12, (i) => i + 1);
   static final _minutes = List<int>.generate(60, (i) => i);
   static const _periods = ['AM', 'PM'];
-  static const _fruits = ['Apple', 'Banana', 'Cherry', 'Grape', 'Mango'];
+  static const _fruits = [
+    'Apple',
+    'Banana',
+    'Cherry',
+    'Durian',
+    'Grape',
+    'Jackfruit',
+    'Mango',
+    'Papaya',
+    'Rambutan',
+  ];
 
   String _day = 'Wed';
   String _month = 'Jan';
   int _hour = 10;
   int _minute = 30;
   String _period = 'AM';
-  String _fruit = 'Banana';
+  String _fruit = 'Durian';
 
   late final _hourController = WheelController<int>(
     options: _hours,
@@ -207,8 +217,8 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
     );
 
     final section3 = _Section(
-      title: 'Custom layout + expanded',
-      subtitle: 'Custom item builder and expanded wheel',
+      title: 'Custom layout',
+      subtitle: 'Custom item builder wheel',
       children: [
         SizedBox(
           height: 180,
