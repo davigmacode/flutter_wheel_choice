@@ -195,22 +195,51 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
   }
 
   Widget _expandedPicker(BuildContext context) {
-    final itemExtent = widget.itemExtent ?? WheelItem.defaultExtent;
-    final itemBuilder = _childBuilder(itemExtent);
-    final itemVisible = widget.itemVisible;
     return LayoutBuilder(
       builder: (context, constraints) {
         final viewportHeight = constraints.maxHeight;
+        final hasFiniteHeight = viewportHeight.isFinite && viewportHeight > 0;
 
-        /// Resolved squeeze value accounting for expanded layout.
-        double? squeeze;
+        // Derive item extent and visible count from the available height.
+        final baseExtent = widget.itemExtent ?? WheelItem.defaultExtent;
+        int? desiredVisible = widget.itemVisible;
+        double itemExtent;
+        int itemVisible;
 
-        if (_expanded && itemVisible != null && viewportHeight > 0) {
-          squeeze = (itemVisible * itemExtent) / viewportHeight;
+        if (hasFiniteHeight) {
+          if (desiredVisible != null) {
+            // Ensure odd count for a centered selection line
+            if (desiredVisible % 2 == 0) desiredVisible += 1;
+            itemVisible = desiredVisible;
+            itemExtent = viewportHeight / itemVisible;
+          } else {
+            // Start from base extent, infer a suitable odd visible count
+            itemExtent = baseExtent;
+            itemVisible = (viewportHeight / itemExtent).round();
+            if (itemVisible < 1) itemVisible = 1;
+            if (itemVisible % 2 == 0) itemVisible += 1;
+            // Recompute extent to perfectly fill the viewport
+            itemExtent = viewportHeight / itemVisible;
+          }
+        } else {
+          // Fallback when height is unknown or infinite
+          itemExtent = baseExtent;
+          itemVisible = desiredVisible ?? 5;
+          if (itemVisible % 2 == 0) itemVisible += 1;
         }
 
+        final effectiveHeight = hasFiniteHeight
+            ? viewportHeight
+            : itemExtent * itemVisible;
+
+        final itemBuilder = _childBuilder(itemExtent);
+        // Squeeze to make the wheel fill the viewport exactly when bounded.
+        final double squeeze = hasFiniteHeight
+            ? (itemVisible * itemExtent) / effectiveHeight
+            : _effect.squeezeX;
+
         return SizedBox(
-          height: viewportHeight,
+          height: effectiveHeight,
           child: WheelOverlay(
             builder: widget.overlay,
             offset: widget.header?.extent,
@@ -323,7 +352,12 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
   Widget build(BuildContext context) {
     final picker = _expanded ? _expandedPicker(context) : _fixedPicker(context);
     if (widget.header != null) {
-      return Column(children: [widget.header!, picker]);
+      return Column(
+        children: [
+          widget.header!,
+          _expanded ? Expanded(child: picker) : picker,
+        ],
+      );
     }
     return picker;
   }
