@@ -50,13 +50,11 @@ final days = const ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 final controller = WheelController<String>(
   options: days,
   value: 'Wed',
+  onChanged: (v) => debugPrint('Selected: $v'),
 );
 
 WheelChoice<String>(
   controller: controller,
-  options: days,
-  value: 'Wed',
-  onChanged: (v) => debugPrint('Selected: $v'),
 );
 
 // Programmatically select a value later

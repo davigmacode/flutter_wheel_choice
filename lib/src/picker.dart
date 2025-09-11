@@ -112,148 +112,119 @@ class WheelChoice<T> extends StatefulWidget {
 
 /// State and behavior for [WheelChoice].
 class _WheelChoiceState<T> extends State<WheelChoice<T>> {
+  late bool _expanded;
   late WheelEffect _effect;
+  late WheelItemBuilder<T> _itemBuilder;
   late WheelController<T> _internalController;
 
   /// Resolved scroll controller (external or internal fallback).
   WheelController<T> get _controller =>
       widget.controller ?? _internalController;
 
-  double _viewportHeight = 0;
+  IndexedWidgetBuilder _childBuilder(double extent) {
+    return (context, i) {
+      final item = _controller.options[i];
+      final disabled = _controller.isDisabled(item);
+      final selected = item == _controller.value;
+      final label = widget.itemLabel?.call(item) ?? item.toString();
+      final built = _itemBuilder(
+        context,
+        WheelItem(
+          data: item,
+          label: label,
+          selected: selected && !disabled,
+          disabled: disabled,
+        ),
+      );
 
-  bool get _expanded => widget.expanded ?? false;
-
-  final _defaultItemBuilder = WheelItem.delegate();
-  WheelItemBuilder<T> get _itemBuilder =>
-      widget.itemBuilder ?? _defaultItemBuilder;
-  double get _itemExtent => widget.itemExtent ?? WheelItem.defaultExtent;
-  int get _itemVisible => widget.itemVisible ?? 5;
-
-  double get _fixedHeight => _itemExtent * _itemVisible;
-
-  /// Resolved squeeze value accounting for expanded layout.
-  double get _squeeze {
-    if (_expanded && widget.itemVisible != null && _viewportHeight > 0) {
-      return (widget.itemVisible! * _itemExtent) / _viewportHeight;
-    }
-    return _effect.squeezeX;
-  }
-
-  /// Wraps an item with semantics and tap-to-select behavior.
-  Widget _wrapWithSemanticsAndTap({
-    required T item,
-    required Widget child,
-    required bool disabled,
-    required bool selected,
-    required int index,
-  }) {
-    return GestureDetector(
-      onTap: () {
-        if (!disabled) {
-          _controller.animateToIndex(index);
-        }
-      },
-      child: Semantics(
-        button: true,
-        selected: selected,
-        enabled: !disabled,
-        child: child,
-      ),
-    );
-  }
-
-  /// Resolves the string label for an [item].
-  String _resolveLabel(T item) {
-    return widget.itemLabel?.call(item) ?? item.toString();
+      // Wraps an item with semantics and tap-to-select behavior.
+      return SizedBox(
+        height: extent,
+        child: GestureDetector(
+          onTap: () {
+            if (!disabled) _controller.animateToIndex(i);
+          },
+          child: Semantics(
+            button: true,
+            selected: selected,
+            enabled: !disabled,
+            child: built,
+          ),
+        ),
+      );
+    };
   }
 
   /// Builds the list wheel child delegate (looping or finite).
-  ListWheelChildDelegate get _childDelegate {
+  ListWheelChildDelegate _childDelegate(
+    BuildContext context,
+    IndexedWidgetBuilder builder,
+  ) {
     if (_controller.loop) {
       return ListWheelChildLoopingListDelegate(
-        children: List.generate(_controller.options.length, (index) {
-          final item = _controller.options[index];
-          final disabled = _controller.isDisabled(item);
-          final selected = item == _controller.value;
-          final label = _resolveLabel(item);
-          final built = _itemBuilder(
-            context,
-            WheelItem(
-              data: item,
-              label: label,
-              selected: selected && !disabled,
-              disabled: disabled,
-            ),
-          );
-          return SizedBox(
-            height: _itemExtent,
-            child: _wrapWithSemanticsAndTap(
-              item: item,
-              child: built,
-              disabled: disabled,
-              selected: selected,
-              index: index,
-            ),
-          );
-        }),
+        children: List.generate(
+          _controller.options.length,
+          (i) => builder(context, i),
+        ),
       );
     }
-
     return ListWheelChildBuilderDelegate(
       childCount: _controller.options.length,
-      builder: (context, index) {
-        final item = _controller.options[index];
-        final disabled = _controller.isDisabled(item);
-        final selected = item == _controller.value;
-        final label = _resolveLabel(item);
-        final built = _itemBuilder(
-          context,
-          WheelItem(
-            data: item,
-            label: label,
-            selected: selected && !disabled,
-            disabled: disabled,
-          ),
-        );
-        return SizedBox(
-          height: _itemExtent,
-          child: _wrapWithSemanticsAndTap(
-            item: item,
-            child: built,
-            disabled: disabled,
-            selected: selected,
-            index: index,
-          ),
-        );
-      },
+      builder: builder,
     );
   }
 
-  /// The configured wheel view with selection/disable handling.
-  Widget get _wheelView {
-    return NotificationListener<ScrollEndNotification>(
-      onNotification: (_) {
-        _controller.handleScrollEnd();
-        return false;
-      },
-      child: ListWheelScrollView.useDelegate(
-        controller: _controller,
-        itemExtent: _itemExtent,
-        physics: const FixedExtentScrollPhysics(),
-        useMagnifier: _effect.useMagnifierX,
-        magnification: _effect.magnificationX,
-        diameterRatio: _effect.diameterRatioX,
-        perspective: _effect.perspectiveX,
-        offAxisFraction: _effect.offAxisFractionX,
-        overAndUnderCenterOpacity: _effect.overAndUnderCenterOpacityX,
-        squeeze: _squeeze,
-        onSelectedItemChanged: (i) {
-          setState(() {
-            _controller.handleIndexChanged(i);
-          });
-        },
-        childDelegate: _childDelegate,
+  Widget _fixedPicker(BuildContext context) {
+    final itemExtent = widget.itemExtent ?? WheelItem.defaultExtent;
+    final itemVisible = widget.itemVisible ?? 5;
+    final itemBuilder = _childBuilder(itemExtent);
+    final viewportHeight = itemExtent * itemVisible;
+    return SizedBox(
+      height: viewportHeight,
+      child: WheelOverlay(
+        builder: widget.overlay,
+        offset: widget.header?.extent,
+        extent: itemExtent,
+        child: _WheelView(
+          controller: _controller,
+          effect: _effect,
+          itemExtent: itemExtent,
+          childDelegate: _childDelegate(context, itemBuilder),
+        ),
       ),
+    );
+  }
+
+  Widget _expandedPicker(BuildContext context) {
+    final itemExtent = widget.itemExtent ?? WheelItem.defaultExtent;
+    final itemBuilder = _childBuilder(itemExtent);
+    final itemVisible = widget.itemVisible;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final viewportHeight = constraints.maxHeight;
+
+        /// Resolved squeeze value accounting for expanded layout.
+        double? squeeze;
+
+        if (_expanded && itemVisible != null && viewportHeight > 0) {
+          squeeze = (itemVisible * itemExtent) / viewportHeight;
+        }
+
+        return SizedBox(
+          height: viewportHeight,
+          child: WheelOverlay(
+            builder: widget.overlay,
+            offset: widget.header?.extent,
+            extent: itemExtent,
+            child: _WheelView(
+              controller: _controller,
+              effect: _effect.copyWith(squeeze: squeeze),
+              itemExtent: itemExtent,
+              childDelegate: _childDelegate(context, itemBuilder),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -299,7 +270,9 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
       }
     }
 
+    _expanded = widget.expanded ?? false;
     _effect = const WheelEffect().merge(widget.effect);
+    _itemBuilder = widget.itemBuilder ?? WheelItem.delegate();
   }
 
   @override
@@ -326,8 +299,14 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
     if (widget.value != _controller.value && widget.value != null) {
       ctrl?.setValue(widget.value as T, animate: false, notify: false);
     }
+    if (widget.expanded != oldWidget.expanded) {
+      _expanded = widget.expanded ?? false;
+    }
     if (widget.effect != oldWidget.effect) {
       _effect = const WheelEffect().merge(widget.effect);
+    }
+    if (widget.itemBuilder != oldWidget.itemBuilder) {
+      _itemBuilder = widget.itemBuilder ?? WheelItem.delegate();
     }
   }
 
@@ -343,24 +322,50 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
   @override
   /// Lays out the wheel (and header when provided) with an optional overlay.
   Widget build(BuildContext context) {
-    final picker = LayoutBuilder(
-      builder: (context, constraints) {
-        _viewportHeight = _expanded ? constraints.maxHeight : _fixedHeight;
-        return SizedBox(
-          height: _viewportHeight,
-          child: WheelOverlay(
-            builder: widget.overlay,
-            offset: widget.header?.extent,
-            extent: _itemExtent,
-            child: _wheelView,
-          ),
-        );
-      },
-    );
-
+    final picker = _expanded ? _expandedPicker(context) : _fixedPicker(context);
     if (widget.header != null) {
       return Column(children: [widget.header!, picker]);
     }
     return picker;
+  }
+}
+
+class _WheelView extends StatelessWidget {
+  const _WheelView({
+    required this.controller,
+    required this.effect,
+    required this.itemExtent,
+    required this.childDelegate,
+  });
+
+  final WheelController controller;
+  final WheelEffect effect;
+  final double itemExtent;
+  final ListWheelChildDelegate childDelegate;
+
+  @override
+  Widget build(BuildContext context) {
+    return NotificationListener<ScrollEndNotification>(
+      onNotification: (_) {
+        controller.handleScrollEnd();
+        return false;
+      },
+      child: ListWheelScrollView.useDelegate(
+        physics: const FixedExtentScrollPhysics(),
+        controller: controller,
+        itemExtent: itemExtent,
+        useMagnifier: effect.useMagnifierX,
+        magnification: effect.magnificationX,
+        diameterRatio: effect.diameterRatioX,
+        perspective: effect.perspectiveX,
+        offAxisFraction: effect.offAxisFractionX,
+        overAndUnderCenterOpacity: effect.overAndUnderCenterOpacityX,
+        squeeze: effect.squeezeX,
+        onSelectedItemChanged: (i) {
+          controller.handleIndexChanged(i);
+        },
+        childDelegate: childDelegate,
+      ),
+    );
   }
 }
