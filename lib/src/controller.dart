@@ -125,20 +125,15 @@ class WheelController<T> extends FixedExtentScrollController {
     Curve? curve,
     bool notify = true,
   }) async {
-    final idx = _options.indexOf(value);
-    if (idx < 0) return false;
-    _value = value;
-    if (selectedItem != idx) {
-      if (animate) {
-        final d = duration ?? _animationDuration;
-        final c = curve ?? _animationCurve;
-        await animateToItem(idx, duration: d, curve: c);
-      } else {
-        jumpToItem(idx);
-      }
+    if (animate) {
+      return await animateToValue(
+        value,
+        duration: duration,
+        curve: curve,
+        notify: notify,
+      );
     }
-    if (notify) _onChanged?.call(value);
-    return true;
+    return jumpToValue(value);
   }
 
   /// Synchronizes the tracked [value] from a selected index.
@@ -274,6 +269,10 @@ class WheelController<T> extends FixedExtentScrollController {
   }
 
   /// Animates to an item by its index and updates [value].
+  /// Animates to an item by its index and updates [value].
+  ///
+  /// Disabled-awareness: Yes. If the index points to a disabled value, it
+  /// animates to the nearest enabled value (loop-aware).
   Future<void> animateToIndex(
     int index, {
     Duration? duration,
@@ -281,7 +280,12 @@ class WheelController<T> extends FixedExtentScrollController {
     bool notify = true,
   }) async {
     if (_options.isEmpty) return;
-    final baseIndex = _clampIndex(index);
+    int baseIndex = _clampIndex(index);
+    if (isDisabled(_options[baseIndex])) {
+      baseIndex = _loop
+          ? _findNearestEnabledIndexLoop(baseIndex)
+          : _findNearestEnabledIndex(baseIndex);
+    }
     final targetIndex = _loop ? _loopTargetForBaseIndex(baseIndex) : baseIndex;
     _value = _options[baseIndex];
     if (selectedItem != targetIndex) {
@@ -293,19 +297,21 @@ class WheelController<T> extends FixedExtentScrollController {
   }
 
   /// Jumps to an item by its value. Returns `true` if found.
+  ///
+  /// Disabled-awareness: Not disabled-aware; it jumps to the exact value's
+  /// index (if found), even if that value is disabled.
   bool jumpToValue(T value, {bool notify = true}) {
     final baseIndex = _options.indexOf(value);
     if (baseIndex < 0) return false;
-    final targetIndex = _loop ? _loopTargetForBaseIndex(baseIndex) : baseIndex;
-    _value = value;
-    if (selectedItem != targetIndex) {
-      jumpToItem(targetIndex);
-    }
-    if (notify) _onChanged?.call(value);
+    jumpToIndex(baseIndex, notify: notify);
     return true;
   }
 
   /// Animates to an item by its value. Returns `true` if found.
+  /// Animates to an item by its value. Returns `true` if found.
+  ///
+  /// Disabled-awareness: Yes. Delegates to [animateToIndex] which is
+  /// disabled-aware.
   Future<bool> animateToValue(
     T value, {
     Duration? duration,
@@ -314,14 +320,12 @@ class WheelController<T> extends FixedExtentScrollController {
   }) async {
     final baseIndex = _options.indexOf(value);
     if (baseIndex < 0) return false;
-    final targetIndex = _loop ? _loopTargetForBaseIndex(baseIndex) : baseIndex;
-    _value = value;
-    if (selectedItem != targetIndex) {
-      final d = duration ?? _animationDuration;
-      final c = curve ?? _animationCurve;
-      await animateToItem(targetIndex, duration: d, curve: c);
-    }
-    if (notify) _onChanged?.call(value);
+    await animateToIndex(
+      baseIndex,
+      duration: duration,
+      curve: curve,
+      notify: notify,
+    );
     return true;
   }
 }
