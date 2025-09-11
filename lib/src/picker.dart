@@ -42,39 +42,49 @@ import 'controller.dart';
 /// - In `loop` mode, the picker wraps around; disabled items are skipped after scroll end.
 class WheelChoice<T> extends StatefulWidget {
   /// Creates a [WheelChoice] with various customization options.
-  const WheelChoice({
+  WheelChoice({
     super.key,
-    this.value,
-    this.options,
-    this.onChanged,
-    this.controller,
+    T? value,
+    List<T>? options,
+    ValueChanged<T>? onChanged,
+    bool? loop,
+    Duration? animationDuration,
+    Curve? animationCurve,
+    WheelItemDisable<T>? itemDisabled,
     this.itemLabel,
-    this.itemDisabled,
     this.itemBuilder,
     this.itemVisible,
     this.itemExtent,
     this.header,
     this.overlay,
     this.effect,
-    this.loop,
+    this.expanded,
+  }) : controller = WheelController(
+         value: value,
+         options: options,
+         onChanged: onChanged,
+         valueDisabled: itemDisabled,
+         loop: loop,
+         animationDuration: animationDuration,
+         animationCurve: animationCurve,
+       );
+
+  const WheelChoice.raw({
+    super.key,
+    required this.controller,
+    this.itemLabel,
+    this.itemBuilder,
+    this.itemVisible,
+    this.itemExtent,
+    this.header,
+    this.overlay,
+    this.effect,
     this.expanded,
   });
-
-  /// The currently selected value.
-  final T? value;
-
-  /// The available selectable options.
-  final List<T>? options;
-
-  /// Called when a different item is selected.
-  final ValueChanged<T>? onChanged;
 
   /// Resolves a string label from a value for default item rendering.
   /// If not provided, `value.toString()` is used.
   final WheelItemLabel<T>? itemLabel;
-
-  /// A function used to mark specific items as disabled.
-  final WheelItemDisable<T>? itemDisabled;
 
   /// A builder for customizing how each item is displayed.
   final WheelItemBuilder<T>? itemBuilder;
@@ -94,9 +104,6 @@ class WheelChoice<T> extends StatefulWidget {
   /// Visual effects configuration for the wheel's 3D appearance.
   final WheelEffect? effect;
 
-  /// Whether the picker should loop infinitely.
-  final bool? loop;
-
   /// Whether to automatically expand to parent height.
   final bool? expanded;
 
@@ -104,7 +111,7 @@ class WheelChoice<T> extends StatefulWidget {
   ///
   /// Use [WheelController] to change selection by value and keep options
   /// in sync. When omitted, an internal controller is created.
-  final WheelController<T>? controller;
+  final WheelController<T> controller;
 
   @override
   State<WheelChoice<T>> createState() => _WheelChoiceState<T>();
@@ -115,10 +122,7 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
   late bool _expanded;
   late WheelEffect _effect;
   late WheelItemBuilder<T> _itemBuilder;
-  late WheelController<T> _internalCtrl;
-
-  /// Resolved scroll controller (external or internal fallback).
-  WheelController<T> get _ctrl => widget.controller ?? _internalCtrl;
+  late WheelController<T> _ctrl;
 
   IndexedWidgetBuilder _childBuilder(double extent) {
     return (context, i) {
@@ -260,44 +264,8 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
   /// Initializes the internal state and controller.
   void initState() {
     super.initState();
-    final ctrl = widget.controller;
 
-    _internalCtrl =
-        ctrl ??
-        WheelController<T>(
-          options: widget.options,
-          value: widget.value,
-          valueDisabled: widget.itemDisabled,
-          onChanged: widget.onChanged,
-          loop: widget.loop,
-        );
-
-    if (ctrl != null) {
-      if (widget.options != null) {
-        _internalCtrl.setOptions(
-          widget.options,
-          alignToValue: true,
-          animate: false,
-        );
-      }
-      if (widget.itemDisabled != null) {
-        _internalCtrl.setItemDisabled(widget.itemDisabled);
-      }
-      if (widget.onChanged != null) {
-        _internalCtrl.setOnChanged(widget.onChanged);
-      }
-      if (widget.loop != null) {
-        _internalCtrl.setLoop(widget.loop);
-      }
-      if (widget.value != null) {
-        _internalCtrl.setValue(
-          widget.value as T,
-          animate: false,
-          notify: false,
-        );
-      }
-    }
-
+    _ctrl = widget.controller;
     _expanded = widget.expanded ?? false;
     _effect = const WheelEffect().merge(widget.effect);
     _itemBuilder = widget.itemBuilder ?? WheelItem.delegate();
@@ -307,26 +275,6 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
   /// Keeps the controller position and effects in sync with widget updates.
   void didUpdateWidget(covariant WheelChoice<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final ctrl = widget.controller;
-    if (ctrl != null) {
-      if (!identical(widget.options, oldWidget.options) ||
-          widget.options != oldWidget.options ||
-          widget.options?.length != oldWidget.options?.length) {
-        ctrl.setOptions(widget.options, alignToValue: true, animate: false);
-      }
-      if (widget.itemDisabled != oldWidget.itemDisabled) {
-        ctrl.setItemDisabled(widget.itemDisabled);
-      }
-      if (widget.onChanged != oldWidget.onChanged) {
-        ctrl.setOnChanged(widget.onChanged);
-      }
-      if (widget.loop != oldWidget.loop) {
-        ctrl.setLoop(widget.loop);
-      }
-    }
-    if (widget.value != _ctrl.value && widget.value != null) {
-      ctrl?.setValue(widget.value as T, animate: false, notify: false);
-    }
     if (widget.expanded != oldWidget.expanded) {
       _expanded = widget.expanded ?? false;
     }
@@ -340,10 +288,6 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
 
   @override
   void dispose() {
-    // Dispose only when using the internal controller we created.
-    if (widget.controller == null) {
-      _internalCtrl.dispose();
-    }
     super.dispose();
   }
 

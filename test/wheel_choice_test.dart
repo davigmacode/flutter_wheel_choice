@@ -17,10 +17,8 @@ void main() {
     );
     await tester.pumpWidget(
       _wrap(
-        WheelChoice<String>(
+        WheelChoice<String>.raw(
           controller: controller,
-          options: const ['A', 'B', 'C'],
-          value: 'A',
           header: const WheelHeader(child: Text('Header')),
           overlay: (_) => Container(key: const Key('overlay')),
         ),
@@ -38,14 +36,12 @@ void main() {
     final controller = WheelController<String>(
       options: const ['One', 'Two', 'Three'],
       value: 'One',
+      onChanged: (v) => changed = v,
     );
     await tester.pumpWidget(
       _wrap(
-        WheelChoice<String>(
+        WheelChoice<String>.raw(
           controller: controller,
-          options: const ['One', 'Two', 'Three'],
-          value: 'One',
-          onChanged: (v) => changed = v,
         ),
       ),
     );
@@ -61,19 +57,17 @@ void main() {
   testWidgets('WheelChoice skips disabled item after scroll end (finite)', (
     tester,
   ) async {
+    final calls = <String>[];
     final controller = WheelController<String>(
       options: const ['A', 'B', 'C'],
       value: 'A',
+      valueDisabled: (v) => v == 'B',
+      onChanged: calls.add,
     );
-    final calls = <String>[];
     await tester.pumpWidget(
       _wrap(
-        WheelChoice<String>(
+        WheelChoice<String>.raw(
           controller: controller,
-          options: const ['A', 'B', 'C'],
-          value: 'A',
-          itemDisabled: (v) => v == 'B',
-          onChanged: calls.add,
         ),
       ),
     );
@@ -91,20 +85,18 @@ void main() {
   testWidgets('WheelChoice loop mode: disabled snaps to nearest enabled', (
     tester,
   ) async {
+    final calls = <String>[];
     final controller = WheelController<String>(
       options: const ['A', 'B', 'C'],
       value: 'B', // Start at 'B'
+      loop: true,
+      valueDisabled: (v) => v == 'A',
+      onChanged: calls.add,
     );
-    final calls = <String>[];
     await tester.pumpWidget(
       _wrap(
-        WheelChoice<String>(
+        WheelChoice<String>.raw(
           controller: controller,
-          options: const ['A', 'B', 'C'],
-          value: 'B',
-          loop: true,
-          itemDisabled: (v) => v == 'A',
-          onChanged: calls.add,
         ),
       ),
     );
@@ -135,7 +127,7 @@ void main() {
 
     await tester.pumpWidget(
       _wrap(
-        const WheelChoice<String>(
+        WheelChoice<String>(
           options: ['X', 'Y', 'Z'],
           value: 'X',
           effect: effect,

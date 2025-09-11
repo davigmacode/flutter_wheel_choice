@@ -103,7 +103,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Expanded(
-                child: WheelChoice<int>(
+                child: WheelChoice<int>.raw(
                   controller: _hourController,
                   itemLabel: (v) => v.toString().padLeft(2, '0'),
                   overlay: WheelOverlay.outlined(inset: 0),
@@ -114,7 +114,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
                 ),
               ),
               Expanded(
-                child: WheelChoice<int>(
+                child: WheelChoice<int>.raw(
                   controller: _minuteController,
                   itemLabel: (v) => v.toString().padLeft(2, '0'),
                   overlay: WheelOverlay.outlined(inset: 0),
@@ -125,7 +125,7 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
                 ),
               ),
               Expanded(
-                child: WheelChoice<String>(
+                child: WheelChoice<String>.raw(
                   controller: _periodController,
                   overlay: WheelOverlay.outlined(inset: 0),
                   effect: WheelEffect.flat(),
