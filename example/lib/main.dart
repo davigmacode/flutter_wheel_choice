@@ -35,12 +35,27 @@ class ExampleHomePage extends StatefulWidget {
 
 class _ExampleHomePageState extends State<ExampleHomePage> {
   static const _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  static const _months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
   static final _hours = List<int>.generate(12, (i) => i + 1);
   static final _minutes = List<int>.generate(60, (i) => i);
   static const _periods = ['AM', 'PM'];
   static const _fruits = ['Apple', 'Banana', 'Cherry', 'Grape', 'Mango'];
 
   String _day = 'Wed';
+  String _month = 'Jan';
   int _hour = 10;
   int _minute = 30;
   String _period = 'AM';
@@ -74,22 +89,47 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
   Widget build(BuildContext context) {
     final section1 = _Section(
       title: 'Basic',
-      subtitle: 'Pick a day',
+      subtitle: 'Pick month and day',
       children: [
-        WheelChoice<String>(
-          options: _days,
-          value: _day,
-          onChanged: (v) => setState(() => _day = v),
-          itemBuilder: WheelItem.delegate(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            selectedStyle: const TextStyle(fontSize: 18),
-          ),
-          itemVisible: 5,
-          overlay: WheelOverlay.outlined(inset: 12),
-          effect: const WheelEffect(useMagnifier: true, magnification: 1.05),
-          header: const WheelHeader(child: Text('Day')),
+        Row(
+          spacing: 12,
+          children: [
+            Expanded(
+              child: WheelChoice<String>(
+                options: _months,
+                value: _month,
+                onChanged: (v) => setState(() => _month = v),
+                itemVisible: 5,
+                overlay: WheelOverlay.outlined(inset: 12),
+                effect: const WheelEffect(
+                  useMagnifier: true,
+                  magnification: 1.05,
+                ),
+                header: const WheelHeader(child: Text('Month')),
+                loop: true,
+              ),
+            ),
+            Expanded(
+              child: WheelChoice<String>(
+                options: _days,
+                value: _day,
+                onChanged: (v) => setState(() => _day = v),
+                itemBuilder: WheelItem.delegate(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  selectedStyle: const TextStyle(fontSize: 18),
+                ),
+                itemVisible: 5,
+                overlay: WheelOverlay.outlined(inset: 12),
+                effect: const WheelEffect(
+                  useMagnifier: true,
+                  magnification: 1.05,
+                ),
+                header: const WheelHeader(child: Text('Day')),
+              ),
+            ),
+          ],
         ),
-        Text('Selected: $_day'),
+        Text('Selected: $_month $_day'),
       ],
     );
 
