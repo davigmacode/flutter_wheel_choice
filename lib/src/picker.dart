@@ -67,7 +67,7 @@ class WheelChoice<T> extends StatefulWidget {
          loop: loop,
          animationDuration: animationDuration,
          animationCurve: animationCurve,
-       );
+       ), _ownsController = true;
 
   const WheelChoice.raw({
     super.key,
@@ -80,7 +80,7 @@ class WheelChoice<T> extends StatefulWidget {
     this.overlay,
     this.effect,
     this.expanded,
-  });
+  }) : _ownsController = false;
 
   /// Resolves a string label from a value for default item rendering.
   /// If not provided, `value.toString()` is used.
@@ -112,6 +112,9 @@ class WheelChoice<T> extends StatefulWidget {
   /// Use [WheelController] to change selection by value and keep options
   /// in sync. When omitted, an internal controller is created.
   final WheelController<T> controller;
+
+  /// Whether this widget instance owns [controller] and should dispose it.
+  final bool _ownsController;
 
   @override
   State<WheelChoice<T>> createState() => _WheelChoiceState<T>();
@@ -275,6 +278,14 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
   /// Keeps the controller position and effects in sync with widget updates.
   void didUpdateWidget(covariant WheelChoice<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
+    // If the controller instance changed, update our reference and
+    // dispose the old one if this widget owned it.
+    if (!identical(widget.controller, oldWidget.controller)) {
+      if (oldWidget._ownsController) {
+        oldWidget.controller.dispose();
+      }
+      _ctrl = widget.controller;
+    }
     if (widget.expanded != oldWidget.expanded) {
       _expanded = widget.expanded ?? false;
     }
@@ -288,6 +299,10 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
 
   @override
   void dispose() {
+    // Dispose only when WheelChoice owns the controller (default ctor).
+    if (widget._ownsController) {
+      widget.controller.dispose();
+    }
     super.dispose();
   }
 
