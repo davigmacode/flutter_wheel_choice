@@ -257,8 +257,11 @@ class WheelController<T> extends FixedExtentScrollController {
   }
 
   /// Jumps to an item by its index and updates [value].
-  void jumpToIndex(int index, {bool notify = true}) {
-    if (_options.isEmpty) return;
+  ///
+  /// Disabled-awareness: Not disabled-aware; it jumps to the exact
+  /// index (if found), even if that index is disabled.
+  bool jumpToIndex(int index, {bool notify = true}) {
+    if (_options.isEmpty) return false;
     final baseIndex = _clampIndex(index);
     final targetIndex = _loop ? _loopTargetForBaseIndex(baseIndex) : baseIndex;
     _value = _options[baseIndex];
@@ -266,20 +269,20 @@ class WheelController<T> extends FixedExtentScrollController {
       jumpToItem(targetIndex);
     }
     if (notify) _onChanged?.call(_value as T);
+    return true;
   }
 
-  /// Animates to an item by its index and updates [value].
   /// Animates to an item by its index and updates [value].
   ///
   /// Disabled-awareness: Yes. If the index points to a disabled value, it
   /// animates to the nearest enabled value (loop-aware).
-  Future<void> animateToIndex(
+  Future<bool> animateToIndex(
     int index, {
     Duration? duration,
     Curve? curve,
     bool notify = true,
   }) async {
-    if (_options.isEmpty) return;
+    if (_options.isEmpty) return false;
     int baseIndex = _clampIndex(index);
     if (isDisabled(_options[baseIndex])) {
       baseIndex = _loop
@@ -294,6 +297,7 @@ class WheelController<T> extends FixedExtentScrollController {
       await animateToItem(targetIndex, duration: d, curve: c);
     }
     if (notify) _onChanged?.call(_value as T);
+    return true;
   }
 
   /// Jumps to an item by its value. Returns `true` if found.
@@ -327,5 +331,30 @@ class WheelController<T> extends FixedExtentScrollController {
       notify: notify,
     );
     return true;
+  }
+
+  /// Sets the current index, optionally animating to it.
+  ///
+  /// Disabled-awareness:
+  /// - When [animate] is true, this method is disabled-aware (uses
+  ///   [animateToIndex], which snaps to nearest enabled when needed).
+  /// - When [animate] is false, it jumps directly via [jumpToIndex] (not
+  ///   disabled-aware).
+  Future<bool> setIndex(
+    int index, {
+    bool animate = false,
+    Duration? duration,
+    Curve? curve,
+    bool notify = true,
+  }) async {
+    if (animate) {
+      return await animateToIndex(
+        index,
+        duration: duration,
+        curve: curve,
+        notify: notify,
+      );
+    }
+    return jumpToIndex(index, notify: notify);
   }
 }
