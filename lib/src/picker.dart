@@ -41,7 +41,54 @@ import 'controller.dart';
 /// - If `value` is not in `options`, selection defaults to the first item.
 /// - In `loop` mode, the picker wraps around; disabled items are skipped after scroll end.
 class WheelChoice<T> extends StatefulWidget {
-  /// Creates a [WheelChoice] with various customization options.
+  /// Creates a wheel chooser with a built-in [WheelController].
+  ///
+  /// This convenience constructor is ideal when you want a self-contained
+  /// picker without managing a controller instance. It wires the provided
+  /// configuration into an internal controller and the wheel view.
+  ///
+  /// Usage:
+  /// ```dart
+  /// WheelChoice<String>(
+  ///   options: const ['Mon', 'Tue', 'Wed'],
+  ///   value: 'Tue',
+  ///   onChanged: (v) => debugPrint('Selected: $v'),
+  ///   itemVisible: 5,
+  ///   header: const WheelHeader(child: Text('Day')),
+  ///   overlay: WheelOverlay.outlined(inset: 12),
+  ///   effect: const WheelEffect(useMagnifier: true, magnification: 1.1),
+  /// )
+  /// ```
+  ///
+  /// Parameters (controller-related):
+  /// - [options]: List of selectable values. Used by the internal controller
+  ///   to resolve indices and values.
+  /// - [value]: Initial selected value (if present in [options]).
+  /// - [onChanged]: Invoked when selection changes (user or programmatic).
+  /// - [itemDisabled]: Predicate to mark specific values as disabled.
+  /// - [loop]: Enables wrap-around semantics and nearest-enabled snapping.
+  /// - [animationDuration]/[animationCurve]: Defaults for animated moves
+  ///   (e.g., when tapping an item or calling animate APIs).
+  ///
+  /// Parameters (view-related):
+  /// - [itemLabel]: Optional label resolver; defaults to `value.toString()`.
+  /// - [itemBuilder]: Optional custom row builder; defaults to
+  ///   [WheelItem.delegate].
+  /// - [itemVisible]: Visible row count (odd recommended for centering).
+  /// - [itemExtent]: Row height. If omitted in expanded mode, it is derived
+  ///   from the viewport height to fit exactly.
+  /// - [header]: Optional header row above the wheel viewport.
+  /// - [overlay]: Optional overlay over the viewport (e.g., selection lines).
+  /// - [effect]: 3D look and magnifier configuration.
+  /// - [physics]: Optional scroll physics.
+  /// - [clipBehavior]: Optional viewport clipping.
+  /// - [expanded]: If true, the wheel adapts to the parent height and adjusts
+  ///   squeeze/itemExtent accordingly.
+  ///
+  /// Ownership:
+  /// - This constructor creates and owns an internal [WheelController]. The
+  ///   widget disposes it on unmount. If you need to reuse or externally
+  ///   control the controller, prefer [WheelChoice.raw].
   WheelChoice({
     super.key,
     T? value,
@@ -72,6 +119,15 @@ class WheelChoice<T> extends StatefulWidget {
        ),
        _ownsController = true;
 
+  /// Creates a wheel chooser using an external [controller].
+  ///
+  /// Use this when you need to hold and reuse a [WheelController] across
+  /// widgets, set the selection programmatically (e.g., `setValue`,
+  /// `animateToIndex`), or listen reactively via `valueListenable`/
+  /// `indexListenable`.
+  ///
+  /// The widget does not own the [controller]; you are responsible for
+  /// disposing it when no longer needed.
   const WheelChoice.raw({
     super.key,
     required this.controller,
