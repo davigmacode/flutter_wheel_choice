@@ -251,6 +251,7 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
     final itemExtent = widget.itemExtent ?? WheelItem.defaultExtent;
     final itemVisible = widget.itemVisible ?? 5;
     final itemBuilder = _childBuilder(itemExtent);
+    final itemDelegate = _childDelegate(context, itemBuilder);
     final viewportHeight = itemExtent * itemVisible;
     return SizedBox(
       height: viewportHeight,
@@ -264,7 +265,7 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
           physics: widget.physics,
           clipBehavior: widget.clipBehavior,
           itemExtent: itemExtent,
-          childDelegate: _childDelegate(context, itemBuilder),
+          childDelegate: itemDelegate,
         ),
       ),
     );
@@ -309,6 +310,8 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
             : itemExtent * itemVisible;
 
         final itemBuilder = _childBuilder(itemExtent);
+        final itemDelegate = _childDelegate(context, itemBuilder);
+
         // Squeeze to make the wheel fill the viewport exactly when bounded.
         final double squeeze = hasFiniteHeight
             ? (itemVisible * itemExtent) / effectiveHeight
@@ -326,7 +329,7 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
               physics: widget.physics,
               clipBehavior: widget.clipBehavior,
               itemExtent: itemExtent,
-              childDelegate: _childDelegate(context, itemBuilder),
+              childDelegate: itemDelegate,
             ),
           ),
         );

@@ -13,6 +13,8 @@ Demo: https://davigmacode.github.io/flutter_wheel_choice
 - Item builder and label resolver (`WheelItem.delegate`, `itemLabel`)
 - Disable items and optionally loop the list (`itemDisabled`, `loop`)
 - Programmatic control with `WheelController`
+- Reactive listeners: `valueListenable`, `indexListenable`
+- Custom scroll `physics` and `clipBehavior`
 - Adaptive height with `expanded` and `itemVisible`
 
 ## Installation
@@ -53,9 +55,7 @@ final controller = WheelController<String>(
   onChanged: (v) => debugPrint('Selected: $v'),
 );
 
-WheelChoice<String>(
-  controller: controller,
-);
+WheelChoice<String>.raw(controller: controller);
 
 // Programmatically select a value later
 await controller.setValue('Fri', animate: true);
@@ -68,8 +68,8 @@ controller.setOptions(const ['Tue', 'Wed', 'Thu']);
 
 This package ships with a runnable example that demonstrates:
 
-- Basic day picker with header and magnifier
-- Numeric minutes picker (only multiples of 5) with loop and filled overlay
+- Month + day pickers side-by-side (month loops)
+- Time picker: hour, minute, AM/PM in a row, with programmatic controls
 - Custom item builder with icons and expanded layout
 
 Run locally:
@@ -121,3 +121,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 <a href="https://ko-fi.com/davigmacode" target="_blank"><img src="https://storage.ko-fi.com/cdn/brandasset/kofi_s_tag_white.png" alt="Ko-Fi" height="45"></a>
 
 If this package or any other package I created is helping you, please consider to sponsor me so that I can take time to read the issues, fix bugs, merge pull requests and add features to these packages.
+
