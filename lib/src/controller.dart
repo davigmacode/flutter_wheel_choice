@@ -67,7 +67,11 @@ class WheelController<T> extends FixedExtentScrollController {
   /// Currently selected value tracked by this controller.
   T? get value => _value;
 
-  /// Read-only listenable for the current index.
+  /// Read-only listenable for the current base index (0..options.length-1).
+  ///
+  /// Emits updates whenever selection changes (user or programmatic). Pairs
+  /// with [valueListenable] for reactive integrations without rebuilding
+  /// parent widgets.
   ValueListenable<int> get indexListenable => _indexNotifier;
 
   /// Read-only listenable for the current [value].

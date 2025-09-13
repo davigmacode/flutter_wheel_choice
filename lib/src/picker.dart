@@ -143,15 +143,37 @@ class WheelChoice<T> extends StatefulWidget {
   /// Scroll controller for programmatic control.
   ///
   /// Use [WheelController] to change selection by value and keep options
-  /// in sync. When omitted, an internal controller is created.
+  /// in sync. When `null`, an internal controller is created and owned by
+  /// this widget (default constructor variant).
   final WheelController<T>? controller;
 
+  /// Initial selected value for the internal controller (default ctor).
+  ///
+  /// If present in [options], the wheel will start aligned to this value.
+  /// Ignored by [WheelChoice.raw].
   final T? value;
+
+  /// The list of selectable values (default ctor).
+  /// Ignored by [WheelChoice.raw].
   final List<T>? options;
+
+  /// Called when the selection changes (user or programmatic).
+  /// Ignored by [WheelChoice.raw].
   final ValueChanged<T>? onChanged;
+
+  /// Enables wrap-around semantics for programmatic moves and nearest-enabled
+  /// snapping after settle (default ctor). Ignored by [WheelChoice.raw].
   final bool? loop;
+
+  /// Default animation duration for animated moves in the internal controller
+  /// (default ctor). Ignored by [WheelChoice.raw].
   final Duration? animationDuration;
+
+  /// Default animation curve for animated moves in the internal controller
+  /// (default ctor). Ignored by [WheelChoice.raw].
   final Curve? animationCurve;
+
+  /// Predicate for disabled values (default ctor). Ignored by [WheelChoice.raw].
   final WheelItemDisable<T>? itemDisabled;
 
   /// Resolves a string label from a value for default item rendering.
