@@ -89,15 +89,15 @@ class WheelChoice<T> extends StatefulWidget {
   /// - This constructor creates and owns an internal [WheelController]. The
   ///   widget disposes it on unmount. If you need to reuse or externally
   ///   control the controller, prefer [WheelChoice.raw].
-  WheelChoice({
+  const WheelChoice({
     super.key,
-    T? value,
-    List<T>? options,
-    ValueChanged<T>? onChanged,
-    bool? loop,
-    Duration? animationDuration,
-    Curve? animationCurve,
-    WheelItemDisable<T>? itemDisabled,
+    this.value,
+    this.options,
+    this.onChanged,
+    this.loop,
+    this.animationDuration,
+    this.animationCurve,
+    this.itemDisabled,
     this.itemLabel,
     this.itemBuilder,
     this.itemVisible,
@@ -108,16 +108,7 @@ class WheelChoice<T> extends StatefulWidget {
     this.physics,
     this.clipBehavior,
     this.expanded,
-  }) : controller = WheelController(
-         value: value,
-         options: options,
-         onChanged: onChanged,
-         itemDisabled: itemDisabled,
-         loop: loop,
-         animationDuration: animationDuration,
-         animationCurve: animationCurve,
-       ),
-       _ownsController = true;
+  }) : controller = null;
 
   /// Creates a wheel chooser using an external [controller].
   ///
@@ -130,7 +121,7 @@ class WheelChoice<T> extends StatefulWidget {
   /// disposing it when no longer needed.
   const WheelChoice.raw({
     super.key,
-    required this.controller,
+    required WheelController<T> this.controller,
     this.itemLabel,
     this.itemBuilder,
     this.itemVisible,
@@ -141,7 +132,27 @@ class WheelChoice<T> extends StatefulWidget {
     this.physics,
     this.clipBehavior,
     this.expanded,
-  }) : _ownsController = false;
+  }) : value = null,
+       options = null,
+       onChanged = null,
+       loop = null,
+       animationDuration = null,
+       animationCurve = null,
+       itemDisabled = null;
+
+  /// Scroll controller for programmatic control.
+  ///
+  /// Use [WheelController] to change selection by value and keep options
+  /// in sync. When omitted, an internal controller is created.
+  final WheelController<T>? controller;
+
+  final T? value;
+  final List<T>? options;
+  final ValueChanged<T>? onChanged;
+  final bool? loop;
+  final Duration? animationDuration;
+  final Curve? animationCurve;
+  final WheelItemDisable<T>? itemDisabled;
 
   /// Resolves a string label from a value for default item rendering.
   /// If not provided, `value.toString()` is used.
@@ -174,25 +185,39 @@ class WheelChoice<T> extends StatefulWidget {
   /// Whether to automatically expand to parent height.
   final bool? expanded;
 
-  /// Scroll controller for programmatic control.
-  ///
-  /// Use [WheelController] to change selection by value and keep options
-  /// in sync. When omitted, an internal controller is created.
-  final WheelController<T> controller;
-
-  /// Whether this widget instance owns [controller] and should dispose it.
-  final bool _ownsController;
-
   @override
   State<WheelChoice<T>> createState() => _WheelChoiceState<T>();
 }
 
 /// State and behavior for [WheelChoice].
 class _WheelChoiceState<T> extends State<WheelChoice<T>> {
-  late bool _expanded;
-  late WheelEffect _effect;
-  late WheelItemBuilder<T> _itemBuilder;
-  late WheelController<T> _ctrl;
+  WheelController<T>? _defaultCtrl;
+  WheelController<T> get _ctrl => widget.controller ?? _ensureCtrl();
+  WheelController<T> _ensureCtrl() {
+    return _defaultCtrl ??= WheelController(
+      value: widget.value,
+      options: widget.options,
+      onChanged: widget.onChanged,
+      itemDisabled: widget.itemDisabled,
+      loop: widget.loop,
+      animationDuration: widget.animationDuration,
+      animationCurve: widget.animationCurve,
+    );
+  }
+
+  bool? _defaultExpanded;
+  bool _ensureExpanded() => _defaultExpanded ??= false;
+  bool get _expanded => widget.expanded ?? _ensureExpanded();
+
+  WheelEffect? _defaultEffect;
+  WheelEffect _ensureEffect() => _defaultEffect ??= WheelEffect();
+  WheelEffect get _effect => widget.effect ?? _ensureEffect();
+
+  WheelItemBuilder<T>? _defaultItemBuilder;
+  WheelItemBuilder<T> _ensureItemBuilder() =>
+      _defaultItemBuilder ??= WheelItem.delegate();
+  WheelItemBuilder<T> get _itemBuilder =>
+      widget.itemBuilder ?? _ensureItemBuilder();
 
   IndexedWidgetBuilder _childBuilder(double extent) {
     return (context, i) {
@@ -341,42 +366,54 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
   /// Initializes the internal state and controller.
   void initState() {
     super.initState();
-
-    _ctrl = widget.controller;
-    _expanded = widget.expanded ?? false;
-    _effect = const WheelEffect().merge(widget.effect);
-    _itemBuilder = widget.itemBuilder ?? WheelItem.delegate();
   }
 
   @override
   /// Keeps the controller position and effects in sync with widget updates.
   void didUpdateWidget(covariant WheelChoice<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // If the controller instance changed, update our reference and
-    // dispose the old one if this widget owned it.
-    if (!identical(widget.controller, oldWidget.controller)) {
-      if (oldWidget._ownsController) {
-        oldWidget.controller.dispose();
+
+    // If switching from internal to external controller, dispose internal.
+    if (oldWidget.controller == null && widget.controller != null) {
+      _defaultCtrl?.dispose();
+      _defaultCtrl = null;
+    }
+
+    // If using internal controller, update it based on param changes.
+    if (widget.controller == null) {
+      // Create internal if not yet created and needed later.
+      // For value change, keep options stable and jump to the new date.
+      if (widget.value != null && widget.value != oldWidget.value) {
+        _defaultCtrl?.jumpToValue(widget.value as T, notify: false);
       }
-      _ctrl = widget.controller;
-    }
-    if (widget.expanded != oldWidget.expanded) {
-      _expanded = widget.expanded ?? false;
-    }
-    if (widget.effect != oldWidget.effect) {
-      _effect = const WheelEffect().merge(widget.effect);
-    }
-    if (widget.itemBuilder != oldWidget.itemBuilder) {
-      _itemBuilder = widget.itemBuilder ?? WheelItem.delegate();
+
+      if (widget.onChanged != oldWidget.onChanged) {
+        _defaultCtrl?.setOnChanged(widget.onChanged);
+      }
+
+      if (widget.itemDisabled != oldWidget.itemDisabled) {
+        _defaultCtrl?.setItemDisabled(widget.itemDisabled);
+      }
+
+      if (widget.loop != oldWidget.loop) {
+        _defaultCtrl?.setLoop(widget.loop);
+      }
+
+      if (widget.animationDuration != oldWidget.animationDuration ||
+          widget.animationCurve != oldWidget.animationCurve) {
+        _defaultCtrl?.setAnimationDefaults(
+          duration: widget.animationDuration,
+          curve: widget.animationCurve,
+        );
+      }
     }
   }
 
   @override
   void dispose() {
-    // Dispose only when WheelChoice owns the controller (default ctor).
-    if (widget._ownsController) {
-      widget.controller.dispose();
-    }
+    // Dispose internal controller if we created one.
+    _defaultCtrl?.dispose();
+    _defaultCtrl = null;
     super.dispose();
   }
 
