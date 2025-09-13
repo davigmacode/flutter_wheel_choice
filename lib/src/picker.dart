@@ -545,12 +545,22 @@ class _WheelView extends StatelessWidget {
         canRequestFocus: true,
         child: Shortcuts(
           shortcuts: <LogicalKeySet, Intent>{
-            LogicalKeySet(LogicalKeyboardKey.arrowUp): const _WheelScrollIntent(-1),
-            LogicalKeySet(LogicalKeyboardKey.arrowDown): const _WheelScrollIntent(1),
-            LogicalKeySet(LogicalKeyboardKey.pageUp): const _WheelScrollIntent(-_pageDelta),
-            LogicalKeySet(LogicalKeyboardKey.pageDown): const _WheelScrollIntent(_pageDelta),
-            LogicalKeySet(LogicalKeyboardKey.home): const _WheelHomeEndIntent(true),
-            LogicalKeySet(LogicalKeyboardKey.end): const _WheelHomeEndIntent(false),
+            LogicalKeySet(LogicalKeyboardKey.arrowUp): const _WheelScrollIntent(
+              -1,
+            ),
+            LogicalKeySet(LogicalKeyboardKey.arrowDown):
+                const _WheelScrollIntent(1),
+            LogicalKeySet(LogicalKeyboardKey.pageUp): const _WheelScrollIntent(
+              -_pageDelta,
+            ),
+            LogicalKeySet(LogicalKeyboardKey.pageDown):
+                const _WheelScrollIntent(_pageDelta),
+            LogicalKeySet(LogicalKeyboardKey.home): const _WheelHomeEndIntent(
+              true,
+            ),
+            LogicalKeySet(LogicalKeyboardKey.end): const _WheelHomeEndIntent(
+              false,
+            ),
           },
           child: Actions(
             actions: <Type, Action<Intent>>{

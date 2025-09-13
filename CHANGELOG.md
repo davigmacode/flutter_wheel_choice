@@ -1,3 +1,16 @@
+## 1.2.0
+- Experimental: keyboard navigation (arrow up/down, PgUp/PgDn, Home/End) and
+  haptic feedback on selection. Requires focus for keyboard; haptics only on
+  supported devices. APIs may evolve.
+- Reactive: added examples and docs for `valueListenable` and
+  `indexListenable` to react without wiring `onChanged`.
+- Safety: defer `onChanged` from scroll to next frame to avoid setState during
+  build.
+- Default ctor: lazily instantiates the internal controller on first use to
+  avoid unnecessary creation when an external controller is provided later.
+- Docs: expanded README (reactive listeners, keyboard/haptics notes) and
+  DartDoc (constructors, props, experimental flags).
+
 ## 1.1.0
 - New: `WheelController<T>` for programmatic control (set/jump/animate by
   value or index), plus `valueListenable` and `indexListenable` for reactive
