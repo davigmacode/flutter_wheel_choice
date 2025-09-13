@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'item.dart';
 import 'header.dart';
 import 'effect.dart';
@@ -84,6 +85,12 @@ class WheelChoice<T> extends StatefulWidget {
   /// - [clipBehavior]: Optional viewport clipping.
   /// - [expanded]: If true, the wheel adapts to the parent height and adjusts
   ///   squeeze/itemExtent accordingly.
+  /// - [keyboard] (Experimental): When true, enables basic keyboard navigation
+  ///   (↑/↓, PgUp/PgDn, Home/End). Focus the wheel to use. Defaults to `false`.
+  /// - [focusNode] (Experimental): Optional focus node used when [keyboard] is true.
+  /// - [haptics] (Experimental): When true, plays a selection click haptic on
+  ///   selection change from user scroll. Defaults to `false`. Only effective on
+  ///   supported devices; desktop/web/emulators typically do not vibrate.
   ///
   /// Ownership:
   /// - This constructor creates and owns an internal [WheelController]. The
@@ -107,6 +114,9 @@ class WheelChoice<T> extends StatefulWidget {
     this.effect,
     this.physics,
     this.clipBehavior,
+    this.keyboard,
+    this.focusNode,
+    this.haptics,
     this.expanded,
   }) : controller = null;
 
@@ -131,6 +141,9 @@ class WheelChoice<T> extends StatefulWidget {
     this.effect,
     this.physics,
     this.clipBehavior,
+    this.keyboard,
+    this.focusNode,
+    this.haptics,
     this.expanded,
   }) : value = null,
        options = null,
@@ -203,6 +216,17 @@ class WheelChoice<T> extends StatefulWidget {
 
   /// Optional clip behavior for the wheel viewport.
   final Clip? clipBehavior;
+
+  /// (Experimental) Enables keyboard navigation (when focused).
+  /// Defaults to `false`.
+  final bool? keyboard;
+
+  /// (Experimental) Focus node used when [keyboard] is true.
+  final FocusNode? focusNode;
+
+  /// (Experimental) Plays selection click haptic on user scroll.
+  /// Defaults to `false`. Only effective on supported devices.
+  final bool? haptics;
 
   /// Whether to automatically expand to parent height.
   final bool? expanded;
@@ -311,6 +335,9 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
           effect: _effect,
           physics: widget.physics,
           clipBehavior: widget.clipBehavior,
+          keyboardEnabled: widget.keyboard ?? false,
+          focusNode: widget.focusNode,
+          hapticsEnabled: widget.haptics ?? false,
           itemExtent: itemExtent,
           childDelegate: itemDelegate,
         ),
@@ -375,6 +402,9 @@ class _WheelChoiceState<T> extends State<WheelChoice<T>> {
               effect: _effect.copyWith(squeeze: squeeze),
               physics: widget.physics,
               clipBehavior: widget.clipBehavior,
+              keyboardEnabled: widget.keyboard ?? false,
+              focusNode: widget.focusNode,
+              hapticsEnabled: widget.haptics ?? false,
               itemExtent: itemExtent,
               childDelegate: itemDelegate,
             ),
@@ -463,6 +493,9 @@ class _WheelView extends StatelessWidget {
     required this.childDelegate,
     this.physics,
     this.clipBehavior,
+    this.keyboardEnabled = false,
+    this.focusNode,
+    this.hapticsEnabled = false,
   });
 
   final WheelController controller;
@@ -471,10 +504,15 @@ class _WheelView extends StatelessWidget {
   final ListWheelChildDelegate childDelegate;
   final ScrollPhysics? physics;
   final Clip? clipBehavior;
+  final bool keyboardEnabled;
+  final FocusNode? focusNode;
+  final bool hapticsEnabled;
+
+  static const int _pageDelta = 3;
 
   @override
   Widget build(BuildContext context) {
-    return NotificationListener<ScrollEndNotification>(
+    Widget wheel = NotificationListener<ScrollEndNotification>(
       onNotification: (_) {
         controller.handleScrollEnd();
         return false;
@@ -493,9 +531,60 @@ class _WheelView extends StatelessWidget {
         squeeze: effect.squeezeX,
         onSelectedItemChanged: (i) {
           controller.handleIndexChanged(i);
+          if (hapticsEnabled) {
+            HapticFeedback.selectionClick();
+          }
         },
         childDelegate: childDelegate,
       ),
     );
+
+    if (keyboardEnabled) {
+      wheel = Focus(
+        focusNode: focusNode,
+        canRequestFocus: true,
+        child: Shortcuts(
+          shortcuts: <LogicalKeySet, Intent>{
+            LogicalKeySet(LogicalKeyboardKey.arrowUp): const _WheelScrollIntent(-1),
+            LogicalKeySet(LogicalKeyboardKey.arrowDown): const _WheelScrollIntent(1),
+            LogicalKeySet(LogicalKeyboardKey.pageUp): const _WheelScrollIntent(-_pageDelta),
+            LogicalKeySet(LogicalKeyboardKey.pageDown): const _WheelScrollIntent(_pageDelta),
+            LogicalKeySet(LogicalKeyboardKey.home): const _WheelHomeEndIntent(true),
+            LogicalKeySet(LogicalKeyboardKey.end): const _WheelHomeEndIntent(false),
+          },
+          child: Actions(
+            actions: <Type, Action<Intent>>{
+              _WheelScrollIntent: CallbackAction<_WheelScrollIntent>(
+                onInvoke: (intent) {
+                  final next = controller.selectedIndex + intent.delta;
+                  controller.animateToIndex(next);
+                  return null;
+                },
+              ),
+              _WheelHomeEndIntent: CallbackAction<_WheelHomeEndIntent>(
+                onInvoke: (intent) {
+                  final idx = intent.home ? 0 : controller.options.length - 1;
+                  controller.animateToIndex(idx);
+                  return null;
+                },
+              ),
+            },
+            child: wheel,
+          ),
+        ),
+      );
+    }
+
+    return wheel;
   }
+}
+
+class _WheelScrollIntent extends Intent {
+  const _WheelScrollIntent(this.delta);
+  final int delta;
+}
+
+class _WheelHomeEndIntent extends Intent {
+  const _WheelHomeEndIntent(this.home);
+  final bool home;
 }

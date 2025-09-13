@@ -74,6 +74,8 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
   String _period = 'AM';
   String _fruit = 'Durian';
 
+  final _monthFocus = FocusNode();
+
   late final _hourController = WheelController<int>(
     options: _hours,
     value: _hour,
@@ -99,6 +101,20 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
   );
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _monthFocus.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _monthFocus.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
@@ -121,6 +137,9 @@ class _ExampleHomePageState extends State<ExampleHomePage> {
                   magnification: 1.05,
                 ),
                 header: const WheelHeader(child: Text('Month')),
+                focusNode: _monthFocus,
+                keyboard: true,
+                haptics: true,
                 loop: true,
               ),
             ),

@@ -64,6 +64,43 @@ await controller.setValue('Fri', animate: true);
 controller.setOptions(const ['Tue', 'Wed', 'Thu']);
 ```
 
+### Reactive listeners (no onChanged)
+
+React to selection changes using `ValueListenableBuilder` without wiring `onChanged`:
+
+```dart
+final controller = WheelController<String>(options: days, value: 'Wed');
+
+Column(
+  children: [
+    WheelChoice<String>.raw(controller: controller),
+    const SizedBox(height: 8),
+    ValueListenableBuilder<String?>(
+      valueListenable: controller.valueListenable,
+      builder: (context, v, _) => Text('Selected: ${v ?? '-'}'),
+    ),
+  ],
+);
+```
+
+### Keyboard & haptics
+
+Enable keyboard navigation (↑/↓, PgUp/PgDn, Home/End) and haptics:
+
+```dart
+WheelChoice<String>(
+  options: days,
+  value: 'Wed',
+  keyboard: true, // focus the wheel to use keys
+  haptics: true,  // selection click on scroll
+)
+```
+
+Note (experimental):
+- Keyboard and haptic feedback are experimental. APIs may evolve.
+- Keyboard requires the wheel to be focused (click it or provide a FocusNode and request focus).
+- Haptics are only felt on real devices; desktop/web/emulators typically do not vibrate.
+
 ## Examples
 
 This package ships with a runnable example that demonstrates:
